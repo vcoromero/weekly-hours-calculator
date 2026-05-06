@@ -1,0 +1,94 @@
+import { Router } from "express";
+import { z } from "zod";
+import {
+  authController,
+  workersController,
+  recordsController,
+  weeksController,
+  requireAuth,
+} from "./container.js";
+import { validateBody, validateParams } from "./middleware/validate.middleware.js";
+
+const router = Router();
+
+const loginSchema = z.object({
+  email: z.string().email(),
+  password: z.string().min(1),
+});
+
+const idParamSchema = z.object({
+  id: z.string().uuid(),
+});
+
+const weekIdParamSchema = z.object({
+  weekId: z.string().uuid(),
+});
+
+const createWorkerSchema = z.object({
+  name: z.string().min(1),
+  isRegular: z.boolean(),
+});
+
+const updateWorkerSchema = z.object({
+  name: z.string().min(1).optional(),
+  isRegular: z.boolean().optional(),
+});
+
+const createRecordSchema = z.object({
+  weekId: z.string().uuid(),
+  workerId: z.string().uuid(),
+  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  hours: z.number().positive(),
+  hourlyRate: z.number().positive(),
+  description: z.string().optional(),
+});
+
+const recordInputSchema = z.object({
+  workerId: z.string().uuid(),
+  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  hours: z.number().positive(),
+  hourlyRate: z.number().positive(),
+  description: z.string().optional(),
+});
+
+const saveWeekSchema = z.object({
+  weekId: z.string().uuid(),
+  records: z.array(recordInputSchema).min(1, "Cannot save week without records"),
+});
+
+const previewWeekSchema = z.object({
+  weekId: z.string().uuid(),
+  records: z.array(recordInputSchema),
+});
+
+// Auth
+router.post("/auth/login", validateBody(loginSchema), authController.login);
+
+// Workers (protected)
+router.get("/workers", requireAuth, workersController.list);
+router.post("/workers", requireAuth, validateBody(createWorkerSchema), workersController.create);
+router.get("/workers/:id", requireAuth, validateParams(idParamSchema), workersController.getById);
+router.put("/workers/:id", requireAuth, validateParams(idParamSchema), validateBody(updateWorkerSchema), workersController.update);
+router.delete("/workers/:id", requireAuth, validateParams(idParamSchema), workersController.delete);
+router.get("/workers/:id/history", requireAuth, validateParams(idParamSchema), workersController.history);
+router.get("/workers/:id/stats", requireAuth, validateParams(idParamSchema), workersController.stats);
+
+// Records (protected)
+router.post("/records", requireAuth, validateBody(createRecordSchema), recordsController.create);
+router.get("/records/week/:weekId", requireAuth, validateParams(weekIdParamSchema), recordsController.getByWeek);
+router.delete("/records/:id", requireAuth, validateParams(idParamSchema), recordsController.delete);
+
+const updateWeekSchema = z.object({
+  records: z.array(recordInputSchema).min(1, "Cannot save week without records"),
+});
+
+// Weeks (protected)
+router.get("/weeks", requireAuth, weeksController.list);
+router.get("/weeks/current", requireAuth, weeksController.current);
+router.get("/weeks/:id", requireAuth, validateParams(idParamSchema), weeksController.getById);
+router.put("/weeks/:id", requireAuth, validateParams(idParamSchema), validateBody(updateWeekSchema), weeksController.update);
+router.delete("/weeks/:id", requireAuth, validateParams(idParamSchema), weeksController.delete);
+router.post("/weeks/preview", requireAuth, validateBody(previewWeekSchema), weeksController.preview);
+router.post("/weeks/save", requireAuth, validateBody(saveWeekSchema), weeksController.save);
+
+export default router;

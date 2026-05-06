@@ -1,0 +1,45 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Worker {
+  id        String       @id @default(uuid())
+  name      String       @unique
+  isRegular Boolean      @default(true)
+  records   WorkRecord[]
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+}
+
+model WorkRecord {
+  id          String   @id @default(uuid())
+  workerId    String
+  worker      Worker   @relation(fields: [workerId], references: [id], onDelete: Restrict)
+  date        DateTime @db.Date
+  hours       Float
+  hourlyRate  Float
+  description String?
+  weekId      String
+  week        Week     @relation(fields: [weekId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+
+  @@index([weekId])
+  @@index([workerId])
+}
+
+model Week {
+  id        String       @id @default(uuid())
+  label     String
+  startDate DateTime     @db.Date
+  endDate   DateTime     @db.Date
+  status    String       @default("draft")
+  records   WorkRecord[]
+  createdAt DateTime     @default(now())
+
+  @@index([status])
+}
