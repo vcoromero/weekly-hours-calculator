@@ -1,15 +1,17 @@
-import { prisma } from "./prisma-client.js";
+import type { PrismaClient } from "@prisma/client";
 import type { WeekRepository } from "../../../domain/ports/week.repository.js";
 import type { Week } from "../../../domain/models/week.js";
 
 export class WeekPrismaRepository implements WeekRepository {
+  constructor(private readonly prisma: PrismaClient) {}
+
   async findById(id: string): Promise<Week | null> {
-    const week = await prisma.week.findUnique({ where: { id } });
+    const week = await this.prisma.week.findUnique({ where: { id } });
     return week ? this.map(week) : null;
   }
 
   async findByDateRange(start: Date, end: Date): Promise<Week | null> {
-    const week = await prisma.week.findFirst({
+    const week = await this.prisma.week.findFirst({
       where: { startDate: start, endDate: end },
     });
     return week ? this.map(week) : null;
@@ -20,7 +22,7 @@ export class WeekPrismaRepository implements WeekRepository {
     startDate: Date;
     endDate: Date;
   }): Promise<Week> {
-    const week = await prisma.week.create({
+    const week = await this.prisma.week.create({
       data: {
         label: data.label,
         startDate: data.startDate,
@@ -32,7 +34,7 @@ export class WeekPrismaRepository implements WeekRepository {
   }
 
   async updateStatus(id: string, status: string): Promise<Week> {
-    const week = await prisma.week.update({
+    const week = await this.prisma.week.update({
       where: { id },
       data: { status },
     });
@@ -40,7 +42,7 @@ export class WeekPrismaRepository implements WeekRepository {
   }
 
   async findAllSaved(): Promise<Week[]> {
-    const weeks = await prisma.week.findMany({
+    const weeks = await this.prisma.week.findMany({
       where: { status: "saved" },
       orderBy: { startDate: "desc" },
     });
@@ -48,14 +50,14 @@ export class WeekPrismaRepository implements WeekRepository {
   }
 
   async findAll(): Promise<Week[]> {
-    const weeks = await prisma.week.findMany({
+    const weeks = await this.prisma.week.findMany({
       orderBy: { startDate: "desc" },
     });
     return weeks.map((w) => this.map(w));
   }
 
   async delete(id: string): Promise<void> {
-    await prisma.week.delete({ where: { id } });
+    await this.prisma.week.delete({ where: { id } });
   }
 
   private map(prismaWeek: {

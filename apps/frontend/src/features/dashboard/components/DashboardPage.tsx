@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router";
 import { useWeeks } from "@/shared/api/queries";
+import { Spinner } from "@/shared/components/ui/spinner";
 import { Button } from "@/shared/components/ui/button";
 import { WeekCard } from "./WeekCard";
 import { Plus } from "lucide-react";
@@ -24,9 +25,7 @@ export function DashboardPage() {
       </div>
 
       {isLoading && (
-        <div className="flex justify-center py-12">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
-        </div>
+        <Spinner />
       )}
 
       {error && (

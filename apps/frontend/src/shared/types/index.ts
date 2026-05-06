@@ -31,6 +31,17 @@ export interface Week {
   createdAt: string;
 }
 
+export interface WeekSummary {
+  id: string;
+  label: string;
+  startDate: string;
+  endDate: string;
+  status: 'draft' | 'saved';
+  totalRecords: number;
+  totalAmount: number;
+  createdAt: string;
+}
+
 export interface WorkerTotal {
   workerId: string;
   workerName: string;
@@ -54,6 +65,22 @@ export interface WorkerHistoryItem {
   totalHours: number;
   totalEarnings: number;
   records: WorkRecord[];
+}
+
+export interface WorkerDashboardWeek {
+  weekId: string;
+  label: string;
+  startDate: string;
+  endDate: string;
+  totalHours: number;
+  totalEarnings: number;
+  status: "draft" | "saved";
+  recordCount: number;
+}
+
+export interface WorkerDashboard {
+  stats: WorkerStats;
+  weeks: WorkerDashboardWeek[];
 }
 
 export interface LoginCredentials {

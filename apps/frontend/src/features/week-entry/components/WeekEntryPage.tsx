@@ -1,6 +1,6 @@
 import { useState, useCallback } from "react";
-import { useNavigate, useParams } from "react-router";
-import { useCurrentWeek, useWeekRecords, useWeekById } from "@/shared/api/queries";
+import { useNavigate } from "react-router";
+import { useCurrentWeek, useAvailableWeeks, useWeekRecords, useWeekById, useWorkers } from "@/shared/api/queries";
 import {
   useAddRecord,
   useDeleteRecord,
@@ -8,41 +8,66 @@ import {
   useUpdateWeek,
 } from "@/shared/api/mutations";
 import { api } from "@/shared/api/client";
-import type { CreateRecordInput, Week, WorkRecord } from "@/shared/types";
+import { Spinner } from "@/shared/components/ui/spinner";
+import { Button } from "@/shared/components/ui/button";
+import { Label } from "@/shared/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/shared/components/ui/select";
+import type { CreateRecordInput, Week, WorkRecord, Worker } from "@/shared/types";
 import { RecordForm } from "./RecordForm";
 import { RecordList } from "./RecordList";
 import { WeekPreview } from "./WeekPreview";
-import { Button } from "@/shared/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 
 type Step = "entry" | "preview";
 
 export function WeekEntryPage() {
   const navigate = useNavigate();
-  const { id: editWeekId } = useParams<{ id: string }>();
-  const isEditing = Boolean(editWeekId);
 
   const [step, setStep] = useState<Step>("entry");
   const [previewData, setPreviewData] = useState<Week | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
 
   const { data: currentWeek, isLoading: currentLoading } = useCurrentWeek();
-  const { data: editWeek, isLoading: editLoading } = useWeekById(editWeekId || "");
-  const week = isEditing ? editWeek : currentWeek;
-  const isLoading = isEditing ? editLoading : currentLoading;
+  const { data: availableWeeks, isLoading: weeksLoading } = useAvailableWeeks();
+  const { data: workers } = useWorkers();
 
-  const { data: existingRecords } = useWeekRecords(week?.id || "");
+  const available = availableWeeks || [];
+  const [selectedWeekId, setSelectedWeekId] = useState<string>("");
+
+  const activeWeekId = selectedWeekId || currentWeek?.id || "";
+
+  const { data: activeWeek, isLoading: activeWeekLoading } = useWeekById(activeWeekId);
+  const { data: existingRecords } = useWeekRecords(activeWeekId);
+
+  const week = activeWeek || currentWeek;
+  const isLoading = currentLoading || weeksLoading || activeWeekLoading;
+
   const addRecord = useAddRecord();
   const deleteRecord = useDeleteRecord();
   const saveWeek = useSaveWeek();
   const updateWeek = useUpdateWeek();
 
+  const workersList = workers || [];
+
   const handleAddRecord = useCallback(
-    (data: CreateRecordInput) => {
-      if (!week) return;
-      addRecord.mutate({ ...data, weekId: week.id });
+    async (data: CreateRecordInput) => {
+      if (!activeWeekId) return;
+      try {
+        const result = await addRecord.mutateAsync({ ...data, weekId: activeWeekId });
+        if (result.week && result.week.id !== activeWeekId) {
+          setSelectedWeekId(result.week.id);
+        }
+      } catch {
+        // handled by mutation state
+      }
     },
-    [week, addRecord]
+    [activeWeekId, addRecord]
   );
 
   const handleDeleteRecord = useCallback(
@@ -53,7 +78,7 @@ export function WeekEntryPage() {
   );
 
   const handlePreview = async () => {
-    if (!week || !existingRecords || existingRecords.length === 0) return;
+    if (!activeWeekId || !existingRecords || existingRecords.length === 0) return;
     setSaveError(null);
 
     const previewRecords = existingRecords.map((r) => ({
@@ -66,7 +91,7 @@ export function WeekEntryPage() {
 
     try {
       const preview = await api.post<Week>("/weeks/preview", {
-        weekId: week.id,
+        weekId: activeWeekId,
         records: previewRecords,
       });
       setPreviewData(preview);
@@ -77,7 +102,7 @@ export function WeekEntryPage() {
   };
 
   const handleSave = async () => {
-    if (!week || !previewData?.records || previewData.records.length === 0) {
+    if (!activeWeekId || !previewData?.records || previewData.records.length === 0) {
       setSaveError("No hay registros para guardar");
       return;
     }
@@ -92,38 +117,38 @@ export function WeekEntryPage() {
     }));
 
     try {
-      if (isEditing) {
-        await updateWeek.mutateAsync({ id: week.id, records });
+      const selectedWeek = available.find((w) => w.id === activeWeekId);
+      const isAlreadySaved = selectedWeek?.status === "saved";
+      if (isAlreadySaved) {
+        await updateWeek.mutateAsync({ id: activeWeekId, records });
       } else {
-        await saveWeek.mutateAsync({ weekId: week.id, records });
+        await saveWeek.mutateAsync({ weekId: activeWeekId, records });
       }
-      navigate(isEditing ? `/weeks/${week.id}` : "/");
+      navigate("/");
     } catch (err) {
       setSaveError((err as Error)?.message || "Error al guardar la semana");
     }
   };
 
-  if (isLoading) {
-    return (
-      <div className="flex justify-center py-12">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
-      </div>
-    );
-  }
+  const handleWeekChange = (value: string) => {
+    if (value === "__new__") {
+      setSelectedWeekId("");
+    } else {
+      setSelectedWeekId(value);
+    }
+    setStep("entry");
+    setPreviewData(null);
+    setSaveError(null);
+  };
 
-  if (!week) {
-    return (
-      <div className="text-center py-12">
-        <p className="text-muted-foreground">No se pudo cargar la semana</p>
-        <Button variant="outline" className="mt-4" onClick={() => navigate("/")}>
-          <ArrowLeft className="h-4 w-4 mr-1" />
-          Volver al Dashboard
-        </Button>
-      </div>
-    );
+  if (isLoading) {
+    return <Spinner />;
   }
 
   const records: WorkRecord[] = existingRecords || [];
+
+  const selectedWeek = available.find((w) => w.id === activeWeekId);
+  const isAlreadySaved = selectedWeek?.status === "saved";
 
   if (step === "preview" && previewData) {
     return (
@@ -146,7 +171,7 @@ export function WeekEntryPage() {
           onSave={handleSave}
           onBack={() => { setSaveError(null); setStep("entry"); }}
           isSaving={saveWeek.isPending || updateWeek.isPending}
-          saveLabel={isEditing ? "Actualizar semana" : "Guardar semana"}
+          saveLabel={isAlreadySaved ? "Actualizar semana" : "Guardar semana"}
         />
       </div>
     );
@@ -155,25 +180,42 @@ export function WeekEntryPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <div>
-          <div className="flex items-center gap-2">
-            <Button variant="ghost" size="sm" onClick={() => navigate(-1 as unknown as number)}>
-              <ArrowLeft className="h-4 w-4 mr-1" />
-              {isEditing ? "Volver" : "Dashboard"}
-            </Button>
-          </div>
-          <h1 className="text-2xl font-bold tracking-tight mt-2">
-            {week.label}
-          </h1>
-          <p className="text-sm text-muted-foreground">
-            {isEditing ? "Editando semana" : `Estado: ${week.status === "saved" ? "Guardado" : "Borrador"}`}
-          </p>
+        <div className="flex items-center gap-2">
+          <Button variant="ghost" size="sm" onClick={() => navigate("/")}>
+            <ArrowLeft className="h-4 w-4 mr-1" />
+            Dashboard
+          </Button>
         </div>
       </div>
 
+      <div className="space-y-2">
+        <Label>Seleccionar semana</Label>
+        <Select value={activeWeekId} onValueChange={handleWeekChange}>
+          <SelectTrigger className="w-full">
+            <SelectValue placeholder="Selecciona una semana" />
+          </SelectTrigger>
+          <SelectContent>
+            {available.map((w) => (
+              <SelectItem key={w.id} value={w.id}>
+                {w.label} {w.status === "draft" ? "(borrador)" : ""}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      {week && (
+        <p className="text-xs text-muted-foreground">
+          {isAlreadySaved
+            ? `Editando: ${week.label}`
+            : `Nueva semana: ${week.label}`}
+        </p>
+      )}
+
       <RecordForm
-        weekStart={week.startDate}
-        weekEnd={week.endDate}
+        weekStart={week?.startDate || ""}
+        weekEnd={week?.endDate || ""}
+        workers={workersList}
         onSubmit={handleAddRecord}
         isSubmitting={addRecord.isPending}
       />

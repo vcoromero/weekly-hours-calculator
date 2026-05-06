@@ -1,12 +1,12 @@
-import { useNavigate, Link } from "react-router";
+import { Link } from "react-router";
 import { Card, CardContent } from "@/shared/components/ui/card";
 import { Badge } from "@/shared/components/ui/badge";
-import type { Week } from "@/shared/types";
+import type { WeekSummary } from "@/shared/types";
 import { formatCurrency } from "@/shared/utils/formatters";
-import { Calendar, DollarSign, Hash } from "lucide-react";
+import { Calendar, Hash } from "lucide-react";
 
 interface WeekCardProps {
-  week: Week;
+  week: WeekSummary;
 }
 
 export function WeekCard({ week }: WeekCardProps) {
@@ -26,7 +26,6 @@ export function WeekCard({ week }: WeekCardProps) {
                   {week.totalRecords ?? 0} registros
                 </span>
                 <span className="flex items-center gap-1">
-                  <DollarSign className="h-3 w-3" />
                   {formatCurrency(week.totalAmount ?? 0)}
                 </span>
               </div>

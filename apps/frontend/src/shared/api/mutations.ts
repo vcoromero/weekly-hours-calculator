@@ -41,10 +41,12 @@ export function useAddRecord() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (data: CreateRecordInput & { weekId: string }) =>
-      api.post("/records", data),
-    onSuccess: async () => {
+      api.post<{ id: string; weekId: string; week?: { id: string; label: string; startDate: string; endDate: string; status: string } }>("/records", data),
+    onSuccess: async (_result) => {
       await Promise.all([
         qc.invalidateQueries({ queryKey: ["weeks", "current"] }),
+        qc.invalidateQueries({ queryKey: ["weeks"] }),
+        qc.invalidateQueries({ queryKey: ["weeks", "available"] }),
         qc.invalidateQueries({ queryKey: ["records"] }),
       ]);
     },
@@ -58,6 +60,8 @@ export function useDeleteRecord() {
     onSuccess: async () => {
       await Promise.all([
         qc.invalidateQueries({ queryKey: ["weeks", "current"] }),
+        qc.invalidateQueries({ queryKey: ["weeks"] }),
+        qc.invalidateQueries({ queryKey: ["weeks", "available"] }),
         qc.invalidateQueries({ queryKey: ["records"] }),
       ]);
     },
@@ -73,6 +77,7 @@ export function useSaveWeek() {
       await Promise.all([
         qc.invalidateQueries({ queryKey: ["weeks"] }),
         qc.invalidateQueries({ queryKey: ["weeks", "current"] }),
+        qc.invalidateQueries({ queryKey: ["weeks", "available"] }),
       ]);
     },
   });
@@ -92,6 +97,7 @@ export function useUpdateWeek() {
       await Promise.all([
         qc.invalidateQueries({ queryKey: ["weeks"] }),
         qc.invalidateQueries({ queryKey: ["weeks", variables.id] }),
+        qc.invalidateQueries({ queryKey: ["weeks", "available"] }),
       ]);
     },
   });

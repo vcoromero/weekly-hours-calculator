@@ -1,5 +1,7 @@
 import type { WorkerTotal } from "../models/week.js";
 
+const DECIMAL_PRECISION = 100;
+
 interface RecordLike {
   workerId: string;
   hours: number;
@@ -8,7 +10,7 @@ interface RecordLike {
 
 export class TotalsCalculator {
   recordTotal(hours: number, hourlyRate: number): number {
-    return Math.round(hours * hourlyRate * 100) / 100;
+    return Math.round(hours * hourlyRate * DECIMAL_PRECISION) / DECIMAL_PRECISION;
   }
 
   totalsByWorker(
@@ -40,6 +42,6 @@ export class TotalsCalculator {
   }
 
   private round(value: number): number {
-    return Math.round(value * 100) / 100;
+    return Math.round(value * DECIMAL_PRECISION) / DECIMAL_PRECISION;
   }
 }

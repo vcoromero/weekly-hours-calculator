@@ -1,9 +1,13 @@
+import { prisma } from "../persistence/prisma/prisma-client.js";
 import { JwtBcryptAuthAdapter } from "../auth/jwt-bcrypt.adapter.js";
 import { AuthApplicationService } from "../../application/auth/auth.service.js";
 
 import { WorkerPrismaRepository } from "../persistence/prisma/worker.prisma-repository.js";
 import { RecordPrismaRepository } from "../persistence/prisma/record.prisma-repository.js";
 import { WeekPrismaRepository } from "../persistence/prisma/week.prisma-repository.js";
+
+import { WeekCalculator } from "../../domain/services/week-calculator.js";
+import { TotalsCalculator } from "../../domain/services/totals-calculator.js";
 
 import { WorkerApplicationService } from "../../application/workers/workers.service.js";
 import { RecordApplicationService } from "../../application/records/records.service.js";
@@ -17,14 +21,17 @@ import { createAuthMiddleware } from "./middleware/auth.middleware.js";
 
 const authAdapter = new JwtBcryptAuthAdapter();
 
-const workerRepo = new WorkerPrismaRepository();
-const recordRepo = new RecordPrismaRepository();
-const weekRepo = new WeekPrismaRepository();
+const workerRepo = new WorkerPrismaRepository(prisma);
+const recordRepo = new RecordPrismaRepository(prisma);
+const weekRepo = new WeekPrismaRepository(prisma);
+
+const weekCalc = new WeekCalculator();
+const totalsCalc = new TotalsCalculator();
 
 const authService = new AuthApplicationService(authAdapter);
-const workerService = new WorkerApplicationService(workerRepo, recordRepo);
-const recordService = new RecordApplicationService(recordRepo, weekRepo);
-const weekService = new WeekApplicationService(weekRepo, recordRepo, workerRepo);
+const workerService = new WorkerApplicationService(workerRepo, recordRepo, weekRepo, totalsCalc, weekCalc);
+const recordService = new RecordApplicationService(recordRepo, weekRepo, totalsCalc, weekCalc);
+const weekService = new WeekApplicationService(weekRepo, recordRepo, workerRepo, weekCalc, totalsCalc);
 
 export const authController = createAuthController(authService);
 export const workersController = createWorkersController(workerService);

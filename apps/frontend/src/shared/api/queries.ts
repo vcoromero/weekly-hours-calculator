@@ -1,6 +1,13 @@
 import { useQuery } from "@tanstack/react-query";
 import { api } from "./client";
-import type { Worker, Week, WorkerHistoryItem, WorkerStats } from "../types";
+import type {
+  WeekSummary,
+  Worker,
+  Week,
+  WorkerHistoryItem,
+  WorkerStats,
+  WorkerDashboard,
+} from "../types";
 
 export function useWorkers() {
   return useQuery({
@@ -13,7 +20,15 @@ export function useWorkers() {
 export function useWeeks() {
   return useQuery({
     queryKey: ["weeks"],
-    queryFn: () => api.get<Week[]>("/weeks"),
+    queryFn: () => api.get<WeekSummary[]>("/weeks"),
+    staleTime: 30_000,
+  });
+}
+
+export function useAvailableWeeks() {
+  return useQuery({
+    queryKey: ["weeks", "available"],
+    queryFn: () => api.get<Week[]>("/weeks/available"),
     staleTime: 30_000,
   });
 }
@@ -57,6 +72,14 @@ export function useWorkerStats(workerId: string) {
   return useQuery({
     queryKey: ["workers", workerId, "stats"],
     queryFn: () => api.get<WorkerStats>(`/workers/${workerId}/stats`),
+    enabled: !!workerId,
+  });
+}
+
+export function useWorkerDashboard(workerId: string) {
+  return useQuery({
+    queryKey: ["workers", workerId, "dashboard"],
+    queryFn: () => api.get<WorkerDashboard>(`/workers/${workerId}/dashboard`),
     enabled: !!workerId,
   });
 }

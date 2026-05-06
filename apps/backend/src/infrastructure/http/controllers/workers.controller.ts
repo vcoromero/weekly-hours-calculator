@@ -69,5 +69,14 @@ export function createWorkersController(workerService: WorkerApplicationService)
         next(err);
       }
     },
+
+    async dashboard(req: Request, res: Response, next: NextFunction) {
+      try {
+        const dashboard = await workerService.getDashboard(req.params.id);
+        res.json(dashboard);
+      } catch (err) {
+        next(err);
+      }
+    },
   };
 }
