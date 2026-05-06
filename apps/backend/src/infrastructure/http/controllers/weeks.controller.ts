@@ -12,6 +12,15 @@ export function createWeeksController(weekService: WeekApplicationService) {
       }
     },
 
+    async available(_req: Request, res: Response, next: NextFunction) {
+      try {
+        const weeks = await weekService.listAllWeeks();
+        res.json(weeks);
+      } catch (err) {
+        next(err);
+      }
+    },
+
     async current(_req: Request, res: Response, next: NextFunction) {
       try {
         const week = await weekService.getCurrentWeek();

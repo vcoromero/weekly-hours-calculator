@@ -61,6 +61,10 @@ const previewWeekSchema = z.object({
   records: z.array(recordInputSchema),
 });
 
+const updateWeekSchema = z.object({
+  records: z.array(recordInputSchema).min(1, "Cannot save week without records"),
+});
+
 // Auth
 router.post("/auth/login", validateBody(loginSchema), authController.login);
 
@@ -72,18 +76,16 @@ router.put("/workers/:id", requireAuth, validateParams(idParamSchema), validateB
 router.delete("/workers/:id", requireAuth, validateParams(idParamSchema), workersController.delete);
 router.get("/workers/:id/history", requireAuth, validateParams(idParamSchema), workersController.history);
 router.get("/workers/:id/stats", requireAuth, validateParams(idParamSchema), workersController.stats);
+router.get("/workers/:id/dashboard", requireAuth, validateParams(idParamSchema), workersController.dashboard);
 
 // Records (protected)
 router.post("/records", requireAuth, validateBody(createRecordSchema), recordsController.create);
 router.get("/records/week/:weekId", requireAuth, validateParams(weekIdParamSchema), recordsController.getByWeek);
 router.delete("/records/:id", requireAuth, validateParams(idParamSchema), recordsController.delete);
 
-const updateWeekSchema = z.object({
-  records: z.array(recordInputSchema).min(1, "Cannot save week without records"),
-});
-
 // Weeks (protected)
 router.get("/weeks", requireAuth, weeksController.list);
+router.get("/weeks/available", requireAuth, weeksController.available);
 router.get("/weeks/current", requireAuth, weeksController.current);
 router.get("/weeks/:id", requireAuth, validateParams(idParamSchema), weeksController.getById);
 router.put("/weeks/:id", requireAuth, validateParams(idParamSchema), validateBody(updateWeekSchema), weeksController.update);

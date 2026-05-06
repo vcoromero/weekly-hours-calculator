@@ -3,6 +3,7 @@ import { useWeekById } from "@/shared/api/queries";
 import { useDeleteWeek } from "@/shared/api/mutations";
 import { formatCurrency, formatDateShort } from "@/shared/utils/formatters";
 import { Button } from "@/shared/components/ui/button";
+import { Spinner } from "@/shared/components/ui/spinner";
 import { Card, CardHeader, CardTitle, CardContent } from "@/shared/components/ui/card";
 import { ArrowLeft, Pencil, Trash2, User } from "lucide-react";
 import type { Week } from "@/shared/types";
@@ -55,9 +56,7 @@ export function WeekDetailPage() {
 
   if (isLoading) {
     return (
-      <div className="flex justify-center py-12">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
-      </div>
+      <Spinner />
     );
   }
 

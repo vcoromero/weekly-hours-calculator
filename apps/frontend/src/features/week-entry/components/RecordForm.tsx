@@ -4,9 +4,12 @@ import { z } from "zod";
 import { Button } from "@/shared/components/ui/button";
 import { Input } from "@/shared/components/ui/input";
 import { Label } from "@/shared/components/ui/label";
-import type { CreateRecordInput } from "@/shared/types";
+import type { CreateRecordInput, Worker } from "@/shared/types";
 import { WorkerSelector } from "./WorkerSelector";
 import { Plus } from "lucide-react";
+
+const DEFAULT_HOURS = 8;
+const DEFAULT_HOURLY_RATE = 15;
 
 const recordSchema = z.object({
   workerId: z.string().min(1, "Selecciona un trabajador"),
@@ -21,6 +24,7 @@ type RecordFormData = z.infer<typeof recordSchema>;
 interface RecordFormProps {
   weekStart: string;
   weekEnd: string;
+  workers: Worker[];
   onSubmit: (data: CreateRecordInput) => void;
   isSubmitting: boolean;
 }
@@ -28,6 +32,7 @@ interface RecordFormProps {
 export function RecordForm({
   weekStart,
   weekEnd,
+  workers,
   onSubmit,
   isSubmitting,
 }: RecordFormProps) {
@@ -41,8 +46,8 @@ export function RecordForm({
   } = useForm<RecordFormData>({
     resolver: zodResolver(recordSchema),
     defaultValues: {
-      hours: 8,
-      hourlyRate: 15,
+      hours: DEFAULT_HOURS,
+      hourlyRate: DEFAULT_HOURLY_RATE,
       date: weekStart,
     },
   });
@@ -71,6 +76,7 @@ export function RecordForm({
         <WorkerSelector
           value={workerId || ""}
           onChange={(id) => setValue("workerId", id, { shouldValidate: true })}
+          workers={workers}
         />
 
         <div className="space-y-2">
@@ -78,8 +84,6 @@ export function RecordForm({
           <Input
             id="date"
             type="date"
-            min={weekStart}
-            max={weekEnd}
             {...register("date")}
           />
           {errors.date && (

@@ -7,18 +7,18 @@ import type {
   SaveWeekResult,
   WeekStatus,
 } from "../../domain/models/week.js";
+import type { Week } from "../../domain/models/week.js";
 import type { CreateRecordInput } from "../../domain/models/work-record.js";
 import { WeekCalculator } from "../../domain/services/week-calculator.js";
 import { TotalsCalculator } from "../../domain/services/totals-calculator.js";
 
 export class WeekApplicationService {
-  private readonly weekCalc = new WeekCalculator();
-  private readonly totalsCalc = new TotalsCalculator();
-
   constructor(
     private readonly weekRepo: WeekRepository,
     private readonly recordRepo: RecordRepository,
-    private readonly workerRepo: WorkerRepository
+    private readonly workerRepo: WorkerRepository,
+    private readonly weekCalc: WeekCalculator,
+    private readonly totalsCalc: TotalsCalculator
   ) {}
 
   async getOrCreateCurrentWeek() {
@@ -40,42 +40,21 @@ export class WeekApplicationService {
   async getCurrentWeek(): Promise<WeekWithTotals> {
     const week = await this.getOrCreateCurrentWeek();
     const records = await this.recordRepo.findByWeek(week.id);
-
-    const workerNames = new Map<string, string>();
-    const formattedRecords = records.map((r) => {
-      workerNames.set(r.workerId, r.worker.name);
-      return {
-        id: r.id,
-        workerId: r.workerId,
-        workerName: r.worker.name,
-        date: this.weekCalc.formatDate(r.date),
-        hours: r.hours,
-        hourlyRate: r.hourlyRate,
-        total: this.totalsCalc.recordTotal(r.hours, r.hourlyRate),
-        description: r.description,
-      };
-    });
-
-    return {
-      id: week.id,
-      label: week.label,
-      startDate: this.weekCalc.formatDate(week.startDate),
-      endDate: this.weekCalc.formatDate(week.endDate),
-      status: week.status as WeekStatus,
-      records: formattedRecords,
-      totalsByWorker: this.totalsCalc.totalsByWorker(records, workerNames),
-      grandTotal: this.totalsCalc.grandTotal(
-        this.totalsCalc.totalsByWorker(records, workerNames)
-      ),
-      createdAt: week.createdAt,
-    };
+    return this.buildWeekWithTotals(week, records);
   }
 
   async listWeeks(): Promise<WeekSummary[]> {
     const weeks = await this.weekRepo.findAllSaved();
 
+    // Sort by week number (descending - most recent first)
+    const sortedWeeks = weeks.sort((a, b) => {
+      const weekNumA = this.weekCalc.getWeekNumber(a.startDate);
+      const weekNumB = this.weekCalc.getWeekNumber(b.startDate);
+      return weekNumB - weekNumA;
+    });
+
     const result: WeekSummary[] = [];
-    for (const week of weeks) {
+    for (const week of sortedWeeks) {
       const records = await this.recordRepo.findByWeekSimple(week.id);
       result.push({
         id: week.id,
@@ -99,6 +78,15 @@ export class WeekApplicationService {
     return result;
   }
 
+  async listAllWeeks(): Promise<Week[]> {
+    const weeks = await this.weekRepo.findAll();
+    return weeks.sort((a, b) => {
+      const weekNumA = this.weekCalc.getWeekNumber(a.startDate);
+      const weekNumB = this.weekCalc.getWeekNumber(b.startDate);
+      return weekNumB - weekNumA;
+    });
+  }
+
   async previewWeek(
     weekId: string,
     records: CreateRecordInput[]
@@ -113,6 +101,8 @@ export class WeekApplicationService {
         .filter((w) => workerIds.includes(w.id))
         .map((w) => [w.id, w.name])
     );
+
+    const totalsByWorker = this.totalsCalc.totalsByWorker(records, workerNames);
 
     return {
       id: week.id,
@@ -130,10 +120,8 @@ export class WeekApplicationService {
         total: this.totalsCalc.recordTotal(r.hours, r.hourlyRate),
         description: r.description || null,
       })),
-      totalsByWorker: this.totalsCalc.totalsByWorker(records, workerNames),
-      grandTotal: this.totalsCalc.grandTotal(
-        this.totalsCalc.totalsByWorker(records, workerNames)
-      ),
+      totalsByWorker,
+      grandTotal: this.totalsCalc.grandTotal(totalsByWorker),
       createdAt: week.createdAt,
     };
   }
@@ -146,15 +134,7 @@ export class WeekApplicationService {
     if (!week) throw new WeekError("Week not found");
     if (week.status === "saved") throw new WeekError("Week is already saved");
 
-    await this.recordRepo.deleteByWeek(weekId);
-
-    await this.recordRepo.createMany(
-      records.map((r) => ({
-        ...r,
-        weekId,
-        description: r.description || undefined,
-      }))
-    );
+    await this.replaceWeekRecords(weekId, records);
 
     await this.weekRepo.updateStatus(weekId, "saved");
 
@@ -178,7 +158,52 @@ export class WeekApplicationService {
     if (!week) throw new WeekError("Week not found");
 
     const records = await this.recordRepo.findByWeek(week.id);
+    return this.buildWeekWithTotals(week, records);
+  }
 
+  async updateWeek(
+    weekId: string,
+    records: CreateRecordInput[]
+  ): Promise<SaveWeekResult> {
+    const week = await this.weekRepo.findById(weekId);
+    if (!week) throw new WeekError("Week not found");
+
+    await this.replaceWeekRecords(weekId, records);
+
+    const updatedRecords = await this.recordRepo.findByWeekSimple(weekId);
+    const totalAmount = updatedRecords.reduce(
+      (sum, r) => sum + r.hours * r.hourlyRate,
+      0
+    );
+
+    return {
+      id: weekId,
+      label: week.label,
+      status: week.status as "draft" | "saved",
+      recordsCount: updatedRecords.length,
+      totalAmount: Math.round(totalAmount * 100) / 100,
+    };
+  }
+
+  async deleteWeek(weekId: string): Promise<void> {
+    const week = await this.weekRepo.findById(weekId);
+    if (!week) throw new WeekError("Week not found");
+
+    await this.weekRepo.delete(weekId);
+  }
+
+  private buildWeekWithTotals(
+    week: Week,
+    records: Array<{
+      id: string;
+      workerId: string;
+      worker: { id: string; name: string };
+      date: Date;
+      hours: number;
+      hourlyRate: number;
+      description: string | null;
+    }>
+  ): WeekWithTotals {
     const workerNames = new Map<string, string>();
     const formattedRecords = records.map((r) => {
       workerNames.set(r.workerId, r.worker.name);
@@ -194,6 +219,8 @@ export class WeekApplicationService {
       };
     });
 
+    const totalsByWorker = this.totalsCalc.totalsByWorker(records, workerNames);
+
     return {
       id: week.id,
       label: week.label,
@@ -201,21 +228,16 @@ export class WeekApplicationService {
       endDate: this.weekCalc.formatDate(week.endDate),
       status: week.status as WeekStatus,
       records: formattedRecords,
-      totalsByWorker: this.totalsCalc.totalsByWorker(records, workerNames),
-      grandTotal: this.totalsCalc.grandTotal(
-        this.totalsCalc.totalsByWorker(records, workerNames)
-      ),
+      totalsByWorker,
+      grandTotal: this.totalsCalc.grandTotal(totalsByWorker),
       createdAt: week.createdAt,
     };
   }
 
-  async updateWeek(
+  private async replaceWeekRecords(
     weekId: string,
     records: CreateRecordInput[]
-  ): Promise<SaveWeekResult> {
-    const week = await this.weekRepo.findById(weekId);
-    if (!week) throw new WeekError("Week not found");
-
+  ): Promise<void> {
     await this.recordRepo.deleteByWeek(weekId);
 
     await this.recordRepo.createMany(
@@ -225,31 +247,12 @@ export class WeekApplicationService {
         description: r.description || undefined,
       }))
     );
-
-    const updatedRecords = await this.recordRepo.findByWeekSimple(weekId);
-    const totalAmount = updatedRecords.reduce(
-      (sum, r) => sum + r.hours * r.hourlyRate,
-      0
-    );
-
-    return {
-      id: weekId,
-      label: week.label,
-      status: week.status as "saved",
-      recordsCount: updatedRecords.length,
-      totalAmount: Math.round(totalAmount * 100) / 100,
-    };
-  }
-
-  async deleteWeek(weekId: string): Promise<void> {
-    const week = await this.weekRepo.findById(weekId);
-    if (!week) throw new WeekError("Week not found");
-
-    await this.weekRepo.delete(weekId);
   }
 }
 
 export class WeekError extends Error {
+  statusCode = 400;
+
   constructor(message: string) {
     super(message);
     this.name = "WeekError";

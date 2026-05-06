@@ -1,19 +1,19 @@
 import type { RecordRepository } from "../../domain/ports/record.repository.js";
 import type { WeekRepository } from "../../domain/ports/week.repository.js";
 import type { WorkRecord, CreateRecordInput } from "../../domain/models/work-record.js";
+import type { Week } from "../../domain/models/week.js";
 import { TotalsCalculator } from "../../domain/services/totals-calculator.js";
 import { WeekCalculator } from "../../domain/services/week-calculator.js";
 
 export class RecordApplicationService {
-  private readonly calculator = new TotalsCalculator();
-  private readonly weekCalc = new WeekCalculator();
-
   constructor(
     private readonly recordRepo: RecordRepository,
-    private readonly weekRepo: WeekRepository
+    private readonly weekRepo: WeekRepository,
+    private readonly calculator: TotalsCalculator,
+    private readonly weekCalc: WeekCalculator
   ) {}
 
-  async create(data: CreateRecordInput & { weekId: string }): Promise<WorkRecord> {
+  async create(data: CreateRecordInput & { weekId: string }): Promise<WorkRecord & { week?: Week }> {
     const duplicate = await this.recordRepo.findDuplicate({
       workerId: data.workerId,
       date: data.date,
@@ -26,16 +26,23 @@ export class RecordApplicationService {
       throw new RecordError("Duplicate record");
     }
 
-    const week = await this.weekRepo.findById(data.weekId);
-    if (!week) {
-      throw new RecordError("Week not found");
+    const range = this.weekCalc.getWeekForDate(data.date);
+    let targetWeek = await this.weekRepo.findByDateRange(range.start, range.end);
+
+    if (!targetWeek) {
+      targetWeek = await this.weekRepo.create({
+        label: range.label,
+        startDate: range.start,
+        endDate: range.end,
+      });
     }
 
-    if (week.status === "saved") {
-      throw new RecordError("Cannot add records to a saved week");
-    }
+    const record = await this.recordRepo.create({
+      ...data,
+      weekId: targetWeek.id,
+    });
 
-    return this.recordRepo.create(data);
+    return { ...record, week: targetWeek };
   }
 
   async findByWeek(weekId: string) {
@@ -59,15 +66,13 @@ export class RecordApplicationService {
       throw new RecordError("Record not found");
     }
 
-    if (record.week.status === "saved") {
-      throw new RecordError("Cannot delete records from a saved week");
-    }
-
     await this.recordRepo.delete(id);
   }
 }
 
 export class RecordError extends Error {
+  statusCode = 400;
+
   constructor(message: string) {
     super(message);
     this.name = "RecordError";

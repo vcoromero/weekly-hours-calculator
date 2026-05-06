@@ -1,38 +1,14 @@
 import { Request, Response, NextFunction } from "express";
 import { ZodError } from "zod";
 import { Prisma } from "@prisma/client";
-import { AuthError } from "../../../application/auth/auth.service.js";
-import { WorkerDeleteError } from "../../../application/workers/workers.service.js";
-import { RecordError } from "../../../application/records/records.service.js";
-import { WeekError } from "../../../application/weeks/weeks.service.js";
 
 export function errorHandler(
-  err: Error,
+  err: Error & { statusCode?: number },
   _req: Request,
   res: Response,
   _next: NextFunction
 ) {
   console.error(`[${new Date().toISOString()}] ${err.name}: ${err.message}`);
-
-  if (err instanceof AuthError) {
-    res.status(401).json({ error: err.message });
-    return;
-  }
-
-  if (err instanceof WorkerDeleteError) {
-    res.status(400).json({ error: err.message });
-    return;
-  }
-
-  if (err instanceof RecordError) {
-    res.status(400).json({ error: err.message });
-    return;
-  }
-
-  if (err instanceof WeekError) {
-    res.status(400).json({ error: err.message });
-    return;
-  }
 
   if (err instanceof ZodError) {
     res.status(400).json({
@@ -55,6 +31,11 @@ export function errorHandler(
       res.status(404).json({ error: "Resource not found" });
       return;
     }
+  }
+
+  if (err.statusCode) {
+    res.status(err.statusCode).json({ error: err.message });
+    return;
   }
 
   res.status(500).json({ error: "Internal server error" });

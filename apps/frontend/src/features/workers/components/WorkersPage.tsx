@@ -1,26 +1,14 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
-import { useWorkers, useWorkerStats } from "@/shared/api/queries";
+import { useWorkers } from "@/shared/api/queries";
 import { useCreateWorker, useUpdateWorker, useDeleteWorker } from "@/shared/api/mutations";
+import { Spinner } from "@/shared/components/ui/spinner";
 import { Button } from "@/shared/components/ui/button";
 import { Input } from "@/shared/components/ui/input";
 import { Label } from "@/shared/components/ui/label";
 import { Badge } from "@/shared/components/ui/badge";
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardContent,
-} from "@/shared/components/ui/card";
-import { formatCurrency } from "@/shared/utils/formatters";
-import {
-  Plus,
-  Pencil,
-  Trash2,
-  BarChart3,
-  ArrowLeft,
-  X,
-} from "lucide-react";
+import { Card, CardHeader, CardTitle, CardContent } from "@/shared/components/ui/card";
+import { Plus, Pencil, Trash2, BarChart3, ArrowLeft, X } from "lucide-react";
 
 interface WorkerFormData {
   name: string;
@@ -41,11 +29,9 @@ export function WorkersPage() {
     isRegular: true,
   });
   const [filter, setFilter] = useState<"all" | "regular" | "occasional">("all");
-  const [statsWorkerId, setStatsWorkerId] = useState<string | null>(null);
 
   const handleSubmit = async () => {
     if (!formData.name.trim()) return;
-
     try {
       if (editingId) {
         await updateWorker.mutateAsync({ id: editingId, ...formData });
@@ -80,12 +66,6 @@ export function WorkersPage() {
     if (filter === "occasional") return !w.isRegular;
     return true;
   });
-
-  const filterLabels: Record<string, string> = {
-    all: "Todos",
-    regular: "Fijos",
-    occasional: "Ocasionales",
-  };
 
   return (
     <div className="space-y-6">
@@ -186,16 +166,12 @@ export function WorkersPage() {
             className="cursor-pointer"
             onClick={() => setFilter(f)}
           >
-            {filterLabels[f]}
+            {f === "all" ? "Todos" : f === "regular" ? "Fijos" : "Ocasionales"}
           </Badge>
         ))}
       </div>
 
-      {isLoading && (
-        <div className="flex justify-center py-12">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
-        </div>
-      )}
+      {isLoading && <Spinner />}
 
       {error && (
         <p className="text-sm text-destructive">
@@ -229,9 +205,7 @@ export function WorkersPage() {
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => setStatsWorkerId(
-                      statsWorkerId === worker.id ? null : worker.id
-                    )}
+                    onClick={() => navigate(`/workers/${worker.id}/dashboard`)}
                   >
                     <BarChart3 className="h-4 w-4" />
                   </Button>
@@ -252,48 +226,9 @@ export function WorkersPage() {
                   </Button>
                 </div>
               </div>
-
-              {statsWorkerId === worker.id && (
-                <WorkerStatsCard workerId={worker.id} />
-              )}
             </CardContent>
           </Card>
         ))}
-      </div>
-    </div>
-  );
-}
-
-function WorkerStatsCard({ workerId }: { workerId: string }) {
-  const { data: stats, isLoading } = useWorkerStats(workerId);
-
-  if (isLoading) {
-    return (
-      <div className="mt-3 pt-3 border-t text-sm text-muted-foreground">
-        Cargando estadísticas...
-      </div>
-    );
-  }
-
-  if (!stats) return null;
-
-  return (
-    <div className="mt-3 pt-3 border-t grid grid-cols-2 gap-2 text-sm">
-      <div>
-        <span className="text-muted-foreground">Total horas:</span>{" "}
-        {stats.totalHours}h
-      </div>
-      <div>
-        <span className="text-muted-foreground">Ganancias:</span>{" "}
-        {formatCurrency(stats.totalEarnings)}
-      </div>
-      <div>
-        <span className="text-muted-foreground">Semanas:</span>{" "}
-        {stats.weeksActive}
-      </div>
-      <div>
-        <span className="text-muted-foreground">Costo prom.:</span>{" "}
-        {formatCurrency(stats.averageHourlyRate)}/h
       </div>
     </div>
   );

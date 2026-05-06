@@ -51,7 +51,7 @@ export interface WeekSummary {
 export interface SaveWeekResult {
   id: string;
   label: string;
-  status: "saved";
+  status: WeekStatus;
   recordsCount: number;
   totalAmount: number;
 }

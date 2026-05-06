@@ -1,4 +1,4 @@
-import { prisma } from "./prisma-client.js";
+import type { PrismaClient } from "@prisma/client";
 import type {
   RecordRepository,
   RecordWithWorker,
@@ -6,10 +6,12 @@ import type {
 import type { WorkRecord, CreateRecordInput } from "../../../domain/models/work-record.js";
 
 export class RecordPrismaRepository implements RecordRepository {
+  constructor(private readonly prisma: PrismaClient) {}
+
   async create(
     data: CreateRecordInput & { weekId: string }
   ): Promise<WorkRecord> {
-    const record = await prisma.workRecord.create({
+    const record = await this.prisma.workRecord.create({
       data: {
         workerId: data.workerId,
         date: new Date(data.date),
@@ -23,7 +25,7 @@ export class RecordPrismaRepository implements RecordRepository {
   }
 
   async findByWeek(weekId: string): Promise<RecordWithWorker[]> {
-    const records = await prisma.workRecord.findMany({
+    const records = await this.prisma.workRecord.findMany({
       where: { weekId },
       include: { worker: true, week: true },
       orderBy: [{ worker: { name: "asc" } }, { date: "asc" }],
@@ -32,7 +34,7 @@ export class RecordPrismaRepository implements RecordRepository {
   }
 
   async findByWorker(workerId: string): Promise<RecordWithWorker[]> {
-    const records = await prisma.workRecord.findMany({
+    const records = await this.prisma.workRecord.findMany({
       where: { workerId },
       include: { worker: true, week: true },
       orderBy: { date: "desc" },
@@ -41,7 +43,7 @@ export class RecordPrismaRepository implements RecordRepository {
   }
 
   async findById(id: string): Promise<RecordWithWorker | null> {
-    const record = await prisma.workRecord.findUnique({
+    const record = await this.prisma.workRecord.findUnique({
       where: { id },
       include: { worker: true, week: true },
     });
@@ -55,7 +57,7 @@ export class RecordPrismaRepository implements RecordRepository {
     hourlyRate: number;
     weekId: string;
   }): Promise<WorkRecord | null> {
-    const record = await prisma.workRecord.findFirst({
+    const record = await this.prisma.workRecord.findFirst({
       where: {
         workerId: data.workerId,
         date: new Date(data.date),
@@ -68,17 +70,17 @@ export class RecordPrismaRepository implements RecordRepository {
   }
 
   async delete(id: string): Promise<void> {
-    await prisma.workRecord.delete({ where: { id } });
+    await this.prisma.workRecord.delete({ where: { id } });
   }
 
   async deleteByWeek(weekId: string): Promise<void> {
-    await prisma.workRecord.deleteMany({ where: { weekId } });
+    await this.prisma.workRecord.deleteMany({ where: { weekId } });
   }
 
   async createMany(
     data: Array<CreateRecordInput & { weekId: string }>
   ): Promise<void> {
-    await prisma.workRecord.createMany({
+    await this.prisma.workRecord.createMany({
       data: data.map((r) => ({
         workerId: r.workerId,
         date: new Date(r.date),
@@ -91,7 +93,7 @@ export class RecordPrismaRepository implements RecordRepository {
   }
 
   async findByWeekSimple(weekId: string): Promise<WorkRecord[]> {
-    const records = await prisma.workRecord.findMany({
+    const records = await this.prisma.workRecord.findMany({
       where: { weekId },
     });
     return records.map((r) => this.mapSimple(r));

@@ -1,6 +1,7 @@
 import { Outlet, Navigate } from "react-router";
 import { useAuth } from "../hooks/useAuth";
 import { Header } from "./Header";
+import { Spinner } from "./ui/spinner";
 
 export function ProtectedLayout() {
   const { isAuthenticated, isLoading } = useAuth();
@@ -8,7 +9,7 @@ export function ProtectedLayout() {
   if (isLoading) {
     return (
       <div className="flex h-screen items-center justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+        <Spinner />
       </div>
     );
   }
