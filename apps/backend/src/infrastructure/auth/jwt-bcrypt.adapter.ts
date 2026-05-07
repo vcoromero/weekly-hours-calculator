@@ -1,4 +1,4 @@
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import type { AuthPort } from "./auth.port.js";
 import type { AuthUser } from "../../application/auth/auth.service.js";

@@ -52,7 +52,7 @@ export function createWeeksController(weekService: WeekApplicationService) {
 
     async getById(req: Request, res: Response, next: NextFunction) {
       try {
-        const week = await weekService.getWeekDetail(req.params.id);
+        const week = await weekService.getWeekDetail(req.params.id as string);
         res.json(week);
       } catch (err) {
         next(err);
@@ -62,7 +62,7 @@ export function createWeeksController(weekService: WeekApplicationService) {
     async update(req: Request, res: Response, next: NextFunction) {
       try {
         const { records } = req.body;
-        const result = await weekService.updateWeek(req.params.id, records);
+        const result = await weekService.updateWeek(req.params.id as string, records);
         res.json(result);
       } catch (err) {
         next(err);
@@ -72,8 +72,8 @@ export function createWeeksController(weekService: WeekApplicationService) {
     async getByWorkerAndWeek(req: Request, res: Response, next: NextFunction) {
       try {
         const week = await weekService.getWeekDetailByWorker(
-          req.params.weekId,
-          req.params.workerId
+          req.params.weekId as string,
+          req.params.workerId as string
         );
         res.json(week);
       } catch (err) {
@@ -83,7 +83,7 @@ export function createWeeksController(weekService: WeekApplicationService) {
 
     async delete(req: Request, res: Response, next: NextFunction) {
       try {
-        await weekService.deleteWeek(req.params.id);
+        await weekService.deleteWeek(req.params.id as string);
         res.status(204).send();
       } catch (err) {
         next(err);
