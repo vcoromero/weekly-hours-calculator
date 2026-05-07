@@ -3,7 +3,8 @@ import type {
   RecordRepository,
   RecordWithWorker,
 } from "../../../domain/ports/record.repository.js";
-import type { WorkRecord, CreateRecordInput } from "../../../domain/models/work-record.js";
+import type { WorkRecord, CreateRecordInput } from "../../../domain/entities/work-record.entity.js";
+import { RecordMapper } from "../mappers/record.mapper.js";
 
 export class RecordPrismaRepository implements RecordRepository {
   constructor(private readonly prisma: PrismaClient) {}
@@ -21,7 +22,7 @@ export class RecordPrismaRepository implements RecordRepository {
         weekId: data.weekId,
       },
     });
-    return this.mapSimple(record);
+    return RecordMapper.toDomain(record);
   }
 
   async findByWeek(weekId: string): Promise<RecordWithWorker[]> {
@@ -30,7 +31,7 @@ export class RecordPrismaRepository implements RecordRepository {
       include: { worker: true, week: true },
       orderBy: [{ worker: { name: "asc" } }, { date: "asc" }],
     });
-    return records.map((r) => this.mapFull(r));
+    return records.map(RecordMapper.toDomainWithWorker);
   }
 
   async findByWorker(workerId: string): Promise<RecordWithWorker[]> {
@@ -39,7 +40,7 @@ export class RecordPrismaRepository implements RecordRepository {
       include: { worker: true, week: true },
       orderBy: { date: "desc" },
     });
-    return records.map((r) => this.mapFull(r));
+    return records.map(RecordMapper.toDomainWithWorker);
   }
 
   async findById(id: string): Promise<RecordWithWorker | null> {
@@ -47,7 +48,7 @@ export class RecordPrismaRepository implements RecordRepository {
       where: { id },
       include: { worker: true, week: true },
     });
-    return record ? this.mapFull(record) : null;
+    return record ? RecordMapper.toDomainWithWorker(record) : null;
   }
 
   async findDuplicate(data: {
@@ -66,7 +67,7 @@ export class RecordPrismaRepository implements RecordRepository {
         weekId: data.weekId,
       },
     });
-    return record ? this.mapSimple(record) : null;
+    return record ? RecordMapper.toDomain(record) : null;
   }
 
   async delete(id: string): Promise<void> {
@@ -96,60 +97,6 @@ export class RecordPrismaRepository implements RecordRepository {
     const records = await this.prisma.workRecord.findMany({
       where: { weekId },
     });
-    return records.map((r) => this.mapSimple(r));
-  }
-
-  private mapSimple(record: {
-    id: string;
-    workerId: string;
-    date: Date;
-    hours: number;
-    hourlyRate: number;
-    description: string | null;
-    weekId: string;
-    createdAt: Date;
-  }): WorkRecord {
-    return {
-      id: record.id,
-      workerId: record.workerId,
-      date: record.date,
-      hours: record.hours,
-      hourlyRate: record.hourlyRate,
-      description: record.description,
-      weekId: record.weekId,
-      createdAt: record.createdAt,
-    };
-  }
-
-  private mapFull(record: {
-    id: string;
-    workerId: string;
-    date: Date;
-    hours: number;
-    hourlyRate: number;
-    description: string | null;
-    weekId: string;
-    createdAt: Date;
-    worker: { id: string; name: string };
-    week: {
-      id: string;
-      label: string;
-      startDate: Date;
-      endDate: Date;
-      status: string;
-    };
-  }): RecordWithWorker {
-    return {
-      id: record.id,
-      workerId: record.workerId,
-      date: record.date,
-      hours: record.hours,
-      hourlyRate: record.hourlyRate,
-      description: record.description,
-      weekId: record.weekId,
-      createdAt: record.createdAt,
-      worker: record.worker,
-      week: record.week,
-    };
+    return records.map(RecordMapper.toDomain);
   }
 }

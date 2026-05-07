@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from "express";
-import type { AuthApplicationService, AuthUser } from "../../../application/auth/auth.service.js";
+import type { AuthUser } from "../../../domain/value-objects/auth-user.vo.js";
+import type { VerifyTokenUseCase } from "../../../application/use-cases/auth/verify-token.use-case.js";
 
 declare global {
   namespace Express {
@@ -9,7 +10,7 @@ declare global {
   }
 }
 
-export function createAuthMiddleware(authService: AuthApplicationService) {
+export function createAuthMiddleware(verifyTokenUseCase: VerifyTokenUseCase) {
   return (req: Request, res: Response, next: NextFunction) => {
     const authHeader = req.headers.authorization;
 
@@ -21,7 +22,7 @@ export function createAuthMiddleware(authService: AuthApplicationService) {
     const token = authHeader.split(" ")[1];
 
     try {
-      req.user = authService.verifyToken(token);
+      req.user = verifyTokenUseCase.execute(token);
       next();
     } catch {
       res.status(401).json({ error: "Invalid token" });

@@ -1,4 +1,4 @@
-import type { WorkRecord, CreateRecordInput } from "../models/work-record.js";
+import type { WorkRecord, CreateRecordInput } from "../entities/work-record.entity.js";
 
 export interface RecordWithWorker extends WorkRecord {
   worker: { id: string; name: string };

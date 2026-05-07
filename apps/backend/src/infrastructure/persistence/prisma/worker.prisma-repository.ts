@@ -1,6 +1,7 @@
 import type { PrismaClient } from "@prisma/client";
 import type { WorkerRepository } from "../../../domain/ports/worker.repository.js";
-import type { Worker } from "../../../domain/models/worker.js";
+import type { Worker } from "../../../domain/entities/worker.entity.js";
+import { WorkerMapper } from "../mappers/worker.mapper.js";
 
 export class WorkerPrismaRepository implements WorkerRepository {
   constructor(private readonly prisma: PrismaClient) {}
@@ -9,17 +10,17 @@ export class WorkerPrismaRepository implements WorkerRepository {
     const workers = await this.prisma.worker.findMany({
       orderBy: { name: "asc" },
     });
-    return workers.map(this.map);
+    return workers.map(WorkerMapper.toDomain);
   }
 
   async findById(id: string): Promise<Worker | null> {
     const worker = await this.prisma.worker.findUnique({ where: { id } });
-    return worker ? this.map(worker) : null;
+    return worker ? WorkerMapper.toDomain(worker) : null;
   }
 
   async create(data: { name: string; isRegular: boolean }): Promise<Worker> {
     const worker = await this.prisma.worker.create({ data });
-    return this.map(worker);
+    return WorkerMapper.toDomain(worker);
   }
 
   async update(
@@ -27,7 +28,7 @@ export class WorkerPrismaRepository implements WorkerRepository {
     data: { name?: string; isRegular?: boolean }
   ): Promise<Worker> {
     const worker = await this.prisma.worker.update({ where: { id }, data });
-    return this.map(worker);
+    return WorkerMapper.toDomain(worker);
   }
 
   async delete(id: string): Promise<void> {
@@ -36,21 +37,5 @@ export class WorkerPrismaRepository implements WorkerRepository {
 
   async countRecords(workerId: string): Promise<number> {
     return this.prisma.workRecord.count({ where: { workerId } });
-  }
-
-  private map(prismaWorker: {
-    id: string;
-    name: string;
-    isRegular: boolean;
-    createdAt: Date;
-    updatedAt: Date;
-  }): Worker {
-    return {
-      id: prismaWorker.id,
-      name: prismaWorker.name,
-      isRegular: prismaWorker.isRegular,
-      createdAt: prismaWorker.createdAt,
-      updatedAt: prismaWorker.updatedAt,
-    };
   }
 }

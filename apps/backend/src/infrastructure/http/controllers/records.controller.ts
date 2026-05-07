@@ -1,11 +1,19 @@
 import { Request, Response, NextFunction } from "express";
-import type { RecordApplicationService } from "../../../application/records/records.service.js";
+import type { CreateRecordUseCase } from "../../../application/use-cases/records/create-record.use-case.js";
+import type { GetRecordsByWeekUseCase } from "../../../application/use-cases/records/get-records-by-week.use-case.js";
+import type { DeleteRecordUseCase } from "../../../application/use-cases/records/delete-record.use-case.js";
 
-export function createRecordsController(recordService: RecordApplicationService) {
+interface RecordsControllerDeps {
+  createRecord: CreateRecordUseCase;
+  getRecordsByWeek: GetRecordsByWeekUseCase;
+  deleteRecord: DeleteRecordUseCase;
+}
+
+export function createRecordsController(deps: RecordsControllerDeps) {
   return {
     async create(req: Request, res: Response, next: NextFunction) {
       try {
-        const record = await recordService.create(req.body);
+        const record = await deps.createRecord.execute(req.body);
         res.status(201).json(record);
       } catch (err) {
         next(err);
@@ -15,7 +23,7 @@ export function createRecordsController(recordService: RecordApplicationService)
     async getByWeek(req: Request, res: Response, next: NextFunction) {
       try {
         const weekId = req.params.weekId as string;
-        const records = await recordService.findByWeek(weekId);
+        const records = await deps.getRecordsByWeek.execute(weekId);
         res.json(records);
       } catch (err) {
         next(err);
@@ -24,7 +32,7 @@ export function createRecordsController(recordService: RecordApplicationService)
 
     async delete(req: Request, res: Response, next: NextFunction) {
       try {
-        await recordService.delete(req.params.id as string);
+        await deps.deleteRecord.execute(req.params.id as string);
         res.status(204).send();
       } catch (err) {
         next(err);
