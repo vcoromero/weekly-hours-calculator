@@ -1,4 +1,5 @@
-import type { Week, WeekDateRange } from "../models/week.js";
+import type { Week } from "../entities/week.entity.js";
+import type { WeekDateRange } from "../value-objects/week-date-range.vo.js";
 
 export interface WeekRepository {
   findById(id: string): Promise<Week | null>;

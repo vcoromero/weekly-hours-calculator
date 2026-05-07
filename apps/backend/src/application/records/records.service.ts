@@ -1,9 +1,10 @@
 import type { RecordRepository } from "../../domain/ports/record.repository.js";
 import type { WeekRepository } from "../../domain/ports/week.repository.js";
-import type { WorkRecord, CreateRecordInput } from "../../domain/models/work-record.js";
-import type { Week } from "../../domain/models/week.js";
+import type { WorkRecord, CreateRecordInput } from "../../domain/entities/work-record.entity.js";
+import type { Week } from "../../domain/entities/week.entity.js";
 import { TotalsCalculator } from "../../domain/services/totals-calculator.js";
 import { WeekCalculator } from "../../domain/services/week-calculator.js";
+import { RecordError } from "../../domain/errors/record.error.js";
 
 export class RecordApplicationService {
   constructor(
@@ -70,11 +71,4 @@ export class RecordApplicationService {
   }
 }
 
-export class RecordError extends Error {
-  statusCode = 400;
-
-  constructor(message: string) {
-    super(message);
-    this.name = "RecordError";
-  }
-}
+export { RecordError } from "../../domain/errors/record.error.js";

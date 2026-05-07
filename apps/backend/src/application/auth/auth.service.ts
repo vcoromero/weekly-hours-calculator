@@ -1,4 +1,8 @@
-import type { AuthPort } from "../../infrastructure/auth/auth.port.js";
+import type { AuthPort } from "../../domain/ports/auth.port.js";
+import type { AuthUser } from "../../domain/value-objects/auth-user.vo.js";
+import { AuthError } from "../../domain/errors/auth.error.js";
+
+export type { AuthUser };
 
 export interface LoginInput {
   email: string;
@@ -42,15 +46,4 @@ export class AuthApplicationService {
   }
 }
 
-export interface AuthUser {
-  id: string;
-  email: string;
-}
-
-export class AuthError extends Error {
-  statusCode = 401;
-  constructor(message: string) {
-    super(message);
-    this.name = "AuthError";
-  }
-}
+export { AuthError } from "../../domain/errors/auth.error.js";

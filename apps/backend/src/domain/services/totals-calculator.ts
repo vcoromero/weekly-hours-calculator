@@ -1,4 +1,4 @@
-import type { WorkerTotal } from "../models/week.js";
+import type { WorkerTotal } from "../entities/week.entity.js";
 
 const DECIMAL_PRECISION = 100;
 

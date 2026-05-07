@@ -1,4 +1,4 @@
-import type { Worker } from "../models/worker.js";
+import type { Worker } from "../entities/worker.entity.js";
 
 export interface WorkerRepository {
   findAll(): Promise<Worker[]>;

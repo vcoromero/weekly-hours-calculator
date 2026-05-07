@@ -6,11 +6,12 @@ import type {
   WeekSummary,
   SaveWeekResult,
   WeekStatus,
-} from "../../domain/models/week.js";
-import type { Week } from "../../domain/models/week.js";
-import type { CreateRecordInput } from "../../domain/models/work-record.js";
+} from "../../domain/entities/week.entity.js";
+import type { Week } from "../../domain/entities/week.entity.js";
+import type { CreateRecordInput } from "../../domain/entities/work-record.entity.js";
 import { WeekCalculator } from "../../domain/services/week-calculator.js";
 import { TotalsCalculator } from "../../domain/services/totals-calculator.js";
+import { WeekError } from "../../domain/errors/week.error.js";
 
 export class WeekApplicationService {
   constructor(
@@ -260,11 +261,4 @@ export class WeekApplicationService {
   }
 }
 
-export class WeekError extends Error {
-  statusCode = 400;
-
-  constructor(message: string) {
-    super(message);
-    this.name = "WeekError";
-  }
-}
+export { WeekError } from "../../domain/errors/week.error.js";

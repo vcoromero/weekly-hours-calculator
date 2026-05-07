@@ -1,4 +1,4 @@
-import type { AuthUser } from "../../application/auth/auth.service.js";
+import type { AuthUser } from "../value-objects/auth-user.vo.js";
 
 export interface AuthPort {
   validateCredentials(email: string, password: string): Promise<boolean>;

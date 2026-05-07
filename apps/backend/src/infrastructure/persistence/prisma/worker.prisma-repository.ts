@@ -1,6 +1,6 @@
 import type { PrismaClient } from "@prisma/client";
 import type { WorkerRepository } from "../../../domain/ports/worker.repository.js";
-import type { Worker } from "../../../domain/models/worker.js";
+import type { Worker } from "../../../domain/entities/worker.entity.js";
 
 export class WorkerPrismaRepository implements WorkerRepository {
   constructor(private readonly prisma: PrismaClient) {}

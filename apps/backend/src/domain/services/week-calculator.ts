@@ -1,4 +1,4 @@
-import type { WeekDateRange } from "../models/week.js";
+import type { WeekDateRange } from "../value-objects/week-date-range.vo.js";
 
 export class WeekCalculator {
   getPreviousWeek(): WeekDateRange {

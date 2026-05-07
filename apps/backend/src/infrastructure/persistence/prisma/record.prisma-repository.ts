@@ -3,7 +3,7 @@ import type {
   RecordRepository,
   RecordWithWorker,
 } from "../../../domain/ports/record.repository.js";
-import type { WorkRecord, CreateRecordInput } from "../../../domain/models/work-record.js";
+import type { WorkRecord, CreateRecordInput } from "../../../domain/entities/work-record.entity.js";
 
 export class RecordPrismaRepository implements RecordRepository {
   constructor(private readonly prisma: PrismaClient) {}

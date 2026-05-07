@@ -1,6 +1,6 @@
 import type { PrismaClient } from "@prisma/client";
 import type { WeekRepository } from "../../../domain/ports/week.repository.js";
-import type { Week } from "../../../domain/models/week.js";
+import type { Week } from "../../../domain/entities/week.entity.js";
 
 export class WeekPrismaRepository implements WeekRepository {
   constructor(private readonly prisma: PrismaClient) {}

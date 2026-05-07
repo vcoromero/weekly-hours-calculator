@@ -1,13 +1,14 @@
 import type { WorkerRepository } from "../../domain/ports/worker.repository.js";
 import type { RecordRepository } from "../../domain/ports/record.repository.js";
 import type { WeekRepository } from "../../domain/ports/week.repository.js";
-import type { Worker } from "../../domain/models/worker.js";
+import type { Worker } from "../../domain/entities/worker.entity.js";
 import type {
   WorkerHistoryItem,
   WorkerStats,
-} from "../../domain/models/worker-history.js";
+} from "../../domain/entities/worker-history.entity.js";
 import { TotalsCalculator } from "../../domain/services/totals-calculator.js";
 import { WeekCalculator } from "../../domain/services/week-calculator.js";
+import { WorkerDeleteError } from "../../domain/errors/worker-delete.error.js";
 
 interface WorkerDashboardItem {
   weekId: string;
@@ -184,11 +185,4 @@ export class WorkerApplicationService {
   }
 }
 
-export class WorkerDeleteError extends Error {
-  statusCode = 400;
-
-  constructor(message: string) {
-    super(message);
-    this.name = "WorkerDeleteError";
-  }
-}
+export { WorkerDeleteError } from "../../domain/errors/worker-delete.error.js";

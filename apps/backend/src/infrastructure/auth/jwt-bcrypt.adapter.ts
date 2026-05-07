@@ -1,7 +1,7 @@
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-import type { AuthPort } from "./auth.port.js";
-import type { AuthUser } from "../../application/auth/auth.service.js";
+import type { AuthPort } from "../../domain/ports/auth.port.js";
+import type { AuthUser } from "../../domain/value-objects/auth-user.vo.js";
 import { env } from "../../config/env.js";
 
 export class JwtBcryptAuthAdapter implements AuthPort {

@@ -1,4 +1,6 @@
-export type WeekStatus = "draft" | "saved";
+import type { WeekStatus } from "../value-objects/week-status.vo.js";
+
+export type { WeekStatus };
 
 export interface Week {
   id: string;
@@ -54,10 +56,4 @@ export interface SaveWeekResult {
   status: WeekStatus;
   recordsCount: number;
   totalAmount: number;
-}
-
-export interface WeekDateRange {
-  start: Date;
-  end: Date;
-  label: string;
 }
