@@ -14,7 +14,8 @@ export function createRecordsController(recordService: RecordApplicationService)
 
     async getByWeek(req: Request, res: Response, next: NextFunction) {
       try {
-        const records = await recordService.findByWeek(req.params.weekId);
+        const weekId = req.params.weekId as string;
+        const records = await recordService.findByWeek(weekId);
         res.json(records);
       } catch (err) {
         next(err);
@@ -23,7 +24,7 @@ export function createRecordsController(recordService: RecordApplicationService)
 
     async delete(req: Request, res: Response, next: NextFunction) {
       try {
-        await recordService.delete(req.params.id);
+        await recordService.delete(req.params.id as string);
         res.status(204).send();
       } catch (err) {
         next(err);

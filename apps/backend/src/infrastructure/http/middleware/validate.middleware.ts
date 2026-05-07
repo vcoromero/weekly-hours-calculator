@@ -7,7 +7,7 @@ export function validateBody(schema: ZodSchema) {
     if (!result.success) {
       res.status(400).json({
         error: "Validation error",
-        details: result.error.errors,
+        details: result.error.issues,
       });
       return;
     }
@@ -22,7 +22,7 @@ export function validateParams(schema: ZodSchema) {
     if (!result.success) {
       res.status(400).json({
         error: "Validation error",
-        details: result.error.errors,
+        details: result.error.issues,
       });
       return;
     }

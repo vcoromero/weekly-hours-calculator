@@ -14,7 +14,7 @@ export function createWorkersController(workerService: WorkerApplicationService)
 
     async getById(req: Request, res: Response, next: NextFunction) {
       try {
-        const worker = await workerService.getById(req.params.id);
+        const worker = await workerService.getById(req.params.id as string);
         if (!worker) {
           res.status(404).json({ error: "Worker not found" });
           return;
@@ -36,7 +36,7 @@ export function createWorkersController(workerService: WorkerApplicationService)
 
     async update(req: Request, res: Response, next: NextFunction) {
       try {
-        const worker = await workerService.update(req.params.id, req.body);
+        const worker = await workerService.update(req.params.id as string, req.body);
         res.json(worker);
       } catch (err) {
         next(err);
@@ -45,7 +45,7 @@ export function createWorkersController(workerService: WorkerApplicationService)
 
     async delete(req: Request, res: Response, next: NextFunction) {
       try {
-        await workerService.delete(req.params.id);
+        await workerService.delete(req.params.id as string);
         res.status(204).send();
       } catch (err) {
         next(err);
@@ -54,7 +54,7 @@ export function createWorkersController(workerService: WorkerApplicationService)
 
     async history(req: Request, res: Response, next: NextFunction) {
       try {
-        const history = await workerService.getHistory(req.params.id);
+        const history = await workerService.getHistory(req.params.id as string);
         res.json(history);
       } catch (err) {
         next(err);
@@ -63,7 +63,7 @@ export function createWorkersController(workerService: WorkerApplicationService)
 
     async stats(req: Request, res: Response, next: NextFunction) {
       try {
-        const stats = await workerService.getStats(req.params.id);
+        const stats = await workerService.getStats(req.params.id as string);
         res.json(stats);
       } catch (err) {
         next(err);
@@ -72,7 +72,7 @@ export function createWorkersController(workerService: WorkerApplicationService)
 
     async dashboard(req: Request, res: Response, next: NextFunction) {
       try {
-        const dashboard = await workerService.getDashboard(req.params.id);
+        const dashboard = await workerService.getDashboard(req.params.id as string);
         res.json(dashboard);
       } catch (err) {
         next(err);
