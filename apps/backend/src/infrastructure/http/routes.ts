@@ -24,6 +24,11 @@ const weekIdParamSchema = z.object({
   weekId: z.string().uuid(),
 });
 
+const workerWeekParamsSchema = z.object({
+  workerId: z.string().uuid(),
+  weekId: z.string().uuid(),
+});
+
 const createWorkerSchema = z.object({
   name: z.string().min(1),
   isRegular: z.boolean(),
@@ -77,6 +82,9 @@ router.delete("/workers/:id", requireAuth, validateParams(idParamSchema), worker
 router.get("/workers/:id/history", requireAuth, validateParams(idParamSchema), workersController.history);
 router.get("/workers/:id/stats", requireAuth, validateParams(idParamSchema), workersController.stats);
 router.get("/workers/:id/dashboard", requireAuth, validateParams(idParamSchema), workersController.dashboard);
+
+// Worker-week (protected)
+router.get("/workers/:workerId/weeks/:weekId", requireAuth, validateParams(workerWeekParamsSchema), weeksController.getByWorkerAndWeek);
 
 // Records (protected)
 router.post("/records", requireAuth, validateBody(createRecordSchema), recordsController.create);

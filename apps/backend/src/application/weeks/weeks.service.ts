@@ -185,6 +185,16 @@ export class WeekApplicationService {
     };
   }
 
+  async getWeekDetailByWorker(weekId: string, workerId: string): Promise<WeekWithTotals> {
+    const week = await this.weekRepo.findById(weekId);
+    if (!week) throw new WeekError("Week not found");
+
+    const records = await this.recordRepo.findByWeek(week.id);
+    const workerRecords = records.filter((r) => r.worker.id === workerId);
+
+    return this.buildWeekWithTotals(week, workerRecords);
+  }
+
   async deleteWeek(weekId: string): Promise<void> {
     const week = await this.weekRepo.findById(weekId);
     if (!week) throw new WeekError("Week not found");
