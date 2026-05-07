@@ -1,20 +1,21 @@
 import type { PrismaClient } from "@prisma/client";
 import type { WeekRepository } from "../../../domain/ports/week.repository.js";
 import type { Week } from "../../../domain/entities/week.entity.js";
+import { WeekMapper } from "../mappers/week.mapper.js";
 
 export class WeekPrismaRepository implements WeekRepository {
   constructor(private readonly prisma: PrismaClient) {}
 
   async findById(id: string): Promise<Week | null> {
     const week = await this.prisma.week.findUnique({ where: { id } });
-    return week ? this.map(week) : null;
+    return week ? WeekMapper.toDomain(week) : null;
   }
 
   async findByDateRange(start: Date, end: Date): Promise<Week | null> {
     const week = await this.prisma.week.findFirst({
       where: { startDate: start, endDate: end },
     });
-    return week ? this.map(week) : null;
+    return week ? WeekMapper.toDomain(week) : null;
   }
 
   async create(data: {
@@ -30,7 +31,7 @@ export class WeekPrismaRepository implements WeekRepository {
         status: "draft",
       },
     });
-    return this.map(week);
+    return WeekMapper.toDomain(week);
   }
 
   async updateStatus(id: string, status: string): Promise<Week> {
@@ -38,7 +39,7 @@ export class WeekPrismaRepository implements WeekRepository {
       where: { id },
       data: { status },
     });
-    return this.map(week);
+    return WeekMapper.toDomain(week);
   }
 
   async findAllSaved(): Promise<Week[]> {
@@ -46,35 +47,17 @@ export class WeekPrismaRepository implements WeekRepository {
       where: { status: "saved" },
       orderBy: { startDate: "desc" },
     });
-    return weeks.map((w) => this.map(w));
+    return weeks.map(WeekMapper.toDomain);
   }
 
   async findAll(): Promise<Week[]> {
     const weeks = await this.prisma.week.findMany({
       orderBy: { startDate: "desc" },
     });
-    return weeks.map((w) => this.map(w));
+    return weeks.map(WeekMapper.toDomain);
   }
 
   async delete(id: string): Promise<void> {
     await this.prisma.week.delete({ where: { id } });
-  }
-
-  private map(prismaWeek: {
-    id: string;
-    label: string;
-    startDate: Date;
-    endDate: Date;
-    status: string;
-    createdAt: Date;
-  }): Week {
-    return {
-      id: prismaWeek.id,
-      label: prismaWeek.label,
-      startDate: prismaWeek.startDate,
-      endDate: prismaWeek.endDate,
-      status: prismaWeek.status as "draft" | "saved",
-      createdAt: prismaWeek.createdAt,
-    };
   }
 }
