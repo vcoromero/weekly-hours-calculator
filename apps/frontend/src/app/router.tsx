@@ -16,6 +16,7 @@ export function AppRouter() {
         <Route path="/" element={<DashboardPage />} />
         <Route path="/week-entry" element={<WeekEntryPage />} />
         <Route path="/weeks/:id" element={<WeekDetailPage />} />
+        <Route path="/weeks/:id/edit" element={<WeekEntryPage />} />
         <Route path="/workers" element={<WorkersPage />} />
         <Route path="/workers/:id/dashboard" element={<WorkerDashboardPage />} />
         <Route path="/workers/:id/weeks/:weekId" element={<WorkerWeekDetailPage />} />

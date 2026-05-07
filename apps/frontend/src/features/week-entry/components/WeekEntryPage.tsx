@@ -1,5 +1,5 @@
 import { useState, useCallback } from "react";
-import { useNavigate } from "react-router";
+import { useNavigate, useParams } from "react-router";
 import { useCurrentWeek, useAvailableWeeks, useWeekRecords, useWeekById, useWorkers } from "@/shared/api/queries";
 import {
   useAddRecord,
@@ -33,12 +33,14 @@ export function WeekEntryPage() {
   const [previewData, setPreviewData] = useState<Week | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
 
+  const { id: urlWeekId } = useParams<{ id: string }>();
+
   const { data: currentWeek, isLoading: currentLoading } = useCurrentWeek();
   const { data: availableWeeks, isLoading: weeksLoading } = useAvailableWeeks();
   const { data: workers } = useWorkers();
 
   const available = availableWeeks || [];
-  const [selectedWeekId, setSelectedWeekId] = useState<string>("");
+  const [selectedWeekId, setSelectedWeekId] = useState<string>(urlWeekId || "");
 
   const activeWeekId = selectedWeekId || currentWeek?.id || "";
 
