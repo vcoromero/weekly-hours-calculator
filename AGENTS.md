@@ -3,14 +3,16 @@
 ## Monorepo & Commands
 
 - **Tool**: NX 22.7 (not npm workspaces). Root scripts delegate to NX: `npm run dev`, `npm run build`, `npm run lint`.
-- **Apps**: `apps/backend` (Express), `apps/frontend` (React 19 + Vite). No library packages in active use.
+- **Apps**: `apps/backend` (Express), `apps/frontend` (React 19 + Vite 8). No library packages in active use.
 - **No test suite** exists in the repo. `lint` = `tsc --noEmit` for both apps.
 
 ### Essential commands
 ```bash
 # Start everything (postgres + backend + frontend)
-npm run docker:up
-npm run dev          # nx run-many --target=dev --projects=frontend,backend --parallel
+npm run docker:up     # docker compose up -d postgres
+npm run docker:down   # docker compose down
+npm run docker:reset  # docker compose down -v (wipes DB volume)
+npm run dev           # nx run-many --target=dev --projects=frontend,backend --parallel
 
 # Type-check only
 npm run lint
@@ -25,8 +27,8 @@ npm run db:studio    # prisma studio
 ## Backend (`apps/backend`)
 
 ### Stack
-- **Express 4** with `/api` prefix. Port 3000.
-- **Prisma 5** + PostgreSQL.
+- **Express 5** with `/api` prefix. Port 3000.
+- **Prisma** + PostgreSQL.
 - **Clean Architecture**: `domain/` (models, ports, services) → `application/` (services/use cases) → `infrastructure/` (controllers, repositories, auth adapters).
 - **DI container**: `infrastructure/http/container.ts` wires everything manually.
 
@@ -36,13 +38,14 @@ npm run db:studio    # prisma studio
 - `src/infrastructure/http/routes.ts` — all HTTP routes.
 
 ### Env (required)
-Copy `.env.example` → `.env`. Required vars:
+Copy `apps/backend/.env.example` → `apps/backend/.env`. Required vars:
 - `DATABASE_URL` — Postgres connection string.
 - `JWT_SECRET` — min 10 chars.
+- `JWT_EXPIRES_IN` — token expiry (defaults to `"7d"`).
 - `MASTER_EMAIL`, `MASTER_PASSWORD_HASH` — seed admin user.
 - `FRONTEND_URL` — CORS origin (default `http://localhost:5173`).
 
-Root `.env` is **only for Docker Compose** (postgres credentials). Backend reads its own env via `dotenv` from `apps/backend/.env`.
+Root `.env` is **only for Docker Compose** (POSTGRES_USER, POSTGRES_PASSWORD, POSTGRES_DB). Backend reads its own env via `dotenv` from `apps/backend/.env`.
 
 ### Prisma workflow
 1. Edit `prisma/schema.prisma`
@@ -93,7 +96,13 @@ src/shared/
 
 ## Important Constraints
 
-- **No tests** — verify manually via dev server or `npm run lint`.
 - **Backend build** = `tsc` (ESM, outputs to `dist/`). Must run `npm run db:generate` after schema changes or TS will fail on missing Prisma types.
 - **Week status**: `draft` → can save; `saved` → editable via `updateWeek` (replaces all records). `saveWeek` rejects if already saved.
 - **Authentication**: JWT stored in `localStorage` (see `useAuth.tsx`). Single master user seeded via `db:seed`.
+
+
+## Code Style
+
+- TypeScript strict mode (enforced in `tsconfig.base.json`).
+- Don't autocommit or push — always ask the user first.
+- Prefer small, focused functional components on the frontend.
