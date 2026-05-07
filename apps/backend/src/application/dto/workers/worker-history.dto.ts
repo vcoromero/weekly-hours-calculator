@@ -1,4 +1,4 @@
-export interface WorkerHistoryItem {
+export interface WorkerHistoryDto {
   weekId: string;
   label: string;
   startDate: string;
@@ -13,12 +13,4 @@ export interface WorkerHistoryItem {
     total: number;
     description: string | null;
   }>;
-}
-
-export interface WorkerStats {
-  totalHours: number;
-  totalEarnings: number;
-  weeksActive: number;
-  averageHoursPerWeek: number;
-  averageHourlyRate: number;
 }

@@ -1,11 +1,29 @@
 import { Request, Response, NextFunction } from "express";
-import type { WorkerApplicationService } from "../../../application/workers/workers.service.js";
+import type { CreateWorkerUseCase } from "../../../application/use-cases/workers/create-worker.use-case.js";
+import type { GetWorkerByIdUseCase } from "../../../application/use-cases/workers/get-worker-by-id.use-case.js";
+import type { ListWorkersUseCase } from "../../../application/use-cases/workers/list-workers.use-case.js";
+import type { UpdateWorkerUseCase } from "../../../application/use-cases/workers/update-worker.use-case.js";
+import type { DeleteWorkerUseCase } from "../../../application/use-cases/workers/delete-worker.use-case.js";
+import type { GetWorkerHistoryUseCase } from "../../../application/use-cases/workers/get-worker-history.use-case.js";
+import type { GetWorkerStatsUseCase } from "../../../application/use-cases/workers/get-worker-stats.use-case.js";
+import type { GetWorkerDashboardUseCase } from "../../../application/use-cases/workers/get-worker-dashboard.use-case.js";
 
-export function createWorkersController(workerService: WorkerApplicationService) {
+interface WorkersControllerDeps {
+  createWorker: CreateWorkerUseCase;
+  getWorkerById: GetWorkerByIdUseCase;
+  listWorkers: ListWorkersUseCase;
+  updateWorker: UpdateWorkerUseCase;
+  deleteWorker: DeleteWorkerUseCase;
+  getWorkerHistory: GetWorkerHistoryUseCase;
+  getWorkerStats: GetWorkerStatsUseCase;
+  getWorkerDashboard: GetWorkerDashboardUseCase;
+}
+
+export function createWorkersController(deps: WorkersControllerDeps) {
   return {
     async list(_req: Request, res: Response, next: NextFunction) {
       try {
-        const workers = await workerService.list();
+        const workers = await deps.listWorkers.execute();
         res.json(workers);
       } catch (err) {
         next(err);
@@ -14,7 +32,7 @@ export function createWorkersController(workerService: WorkerApplicationService)
 
     async getById(req: Request, res: Response, next: NextFunction) {
       try {
-        const worker = await workerService.getById(req.params.id as string);
+        const worker = await deps.getWorkerById.execute(req.params.id as string);
         if (!worker) {
           res.status(404).json({ error: "Worker not found" });
           return;
@@ -27,7 +45,7 @@ export function createWorkersController(workerService: WorkerApplicationService)
 
     async create(req: Request, res: Response, next: NextFunction) {
       try {
-        const worker = await workerService.create(req.body);
+        const worker = await deps.createWorker.execute(req.body);
         res.status(201).json(worker);
       } catch (err) {
         next(err);
@@ -36,7 +54,7 @@ export function createWorkersController(workerService: WorkerApplicationService)
 
     async update(req: Request, res: Response, next: NextFunction) {
       try {
-        const worker = await workerService.update(req.params.id as string, req.body);
+        const worker = await deps.updateWorker.execute(req.params.id as string, req.body);
         res.json(worker);
       } catch (err) {
         next(err);
@@ -45,7 +63,7 @@ export function createWorkersController(workerService: WorkerApplicationService)
 
     async delete(req: Request, res: Response, next: NextFunction) {
       try {
-        await workerService.delete(req.params.id as string);
+        await deps.deleteWorker.execute(req.params.id as string);
         res.status(204).send();
       } catch (err) {
         next(err);
@@ -54,7 +72,7 @@ export function createWorkersController(workerService: WorkerApplicationService)
 
     async history(req: Request, res: Response, next: NextFunction) {
       try {
-        const history = await workerService.getHistory(req.params.id as string);
+        const history = await deps.getWorkerHistory.execute(req.params.id as string);
         res.json(history);
       } catch (err) {
         next(err);
@@ -63,7 +81,7 @@ export function createWorkersController(workerService: WorkerApplicationService)
 
     async stats(req: Request, res: Response, next: NextFunction) {
       try {
-        const stats = await workerService.getStats(req.params.id as string);
+        const stats = await deps.getWorkerStats.execute(req.params.id as string);
         res.json(stats);
       } catch (err) {
         next(err);
@@ -72,7 +90,7 @@ export function createWorkersController(workerService: WorkerApplicationService)
 
     async dashboard(req: Request, res: Response, next: NextFunction) {
       try {
-        const dashboard = await workerService.getDashboard(req.params.id as string);
+        const dashboard = await deps.getWorkerDashboard.execute(req.params.id as string);
         res.json(dashboard);
       } catch (err) {
         next(err);

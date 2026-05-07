@@ -1,10 +1,14 @@
 import { Request, Response } from "express";
-import type { AuthApplicationService } from "../../../application/auth/auth.service.js";
+import type { LoginUseCase } from "../../../application/use-cases/auth/login.use-case.js";
 
-export function createAuthController(authService: AuthApplicationService) {
+interface AuthControllerDeps {
+  login: LoginUseCase;
+}
+
+export function createAuthController(deps: AuthControllerDeps) {
   return {
     async login(req: Request, res: Response) {
-      const result = await authService.login(req.body);
+      const result = await deps.login.execute(req.body);
       res.status(200).json(result);
     },
   };

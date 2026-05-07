@@ -1,11 +1,31 @@
 import { Request, Response, NextFunction } from "express";
-import type { WeekApplicationService } from "../../../application/weeks/weeks.service.js";
+import type { GetCurrentWeekUseCase } from "../../../application/use-cases/weeks/get-current-week.use-case.js";
+import type { ListWeeksUseCase } from "../../../application/use-cases/weeks/list-weeks.use-case.js";
+import type { ListAllWeeksUseCase } from "../../../application/use-cases/weeks/list-all-weeks.use-case.js";
+import type { PreviewWeekUseCase } from "../../../application/use-cases/weeks/preview-week.use-case.js";
+import type { SaveWeekUseCase } from "../../../application/use-cases/weeks/save-week.use-case.js";
+import type { GetWeekDetailUseCase } from "../../../application/use-cases/weeks/get-week-detail.use-case.js";
+import type { UpdateWeekUseCase } from "../../../application/use-cases/weeks/update-week.use-case.js";
+import type { GetWeekDetailByWorkerUseCase } from "../../../application/use-cases/weeks/get-week-detail-by-worker.use-case.js";
+import type { DeleteWeekUseCase } from "../../../application/use-cases/weeks/delete-week.use-case.js";
 
-export function createWeeksController(weekService: WeekApplicationService) {
+interface WeeksControllerDeps {
+  getCurrentWeek: GetCurrentWeekUseCase;
+  listWeeks: ListWeeksUseCase;
+  listAllWeeks: ListAllWeeksUseCase;
+  previewWeek: PreviewWeekUseCase;
+  saveWeek: SaveWeekUseCase;
+  getWeekDetail: GetWeekDetailUseCase;
+  updateWeek: UpdateWeekUseCase;
+  getWeekDetailByWorker: GetWeekDetailByWorkerUseCase;
+  deleteWeek: DeleteWeekUseCase;
+}
+
+export function createWeeksController(deps: WeeksControllerDeps) {
   return {
     async list(_req: Request, res: Response, next: NextFunction) {
       try {
-        const weeks = await weekService.listWeeks();
+        const weeks = await deps.listWeeks.execute();
         res.json(weeks);
       } catch (err) {
         next(err);
@@ -14,7 +34,7 @@ export function createWeeksController(weekService: WeekApplicationService) {
 
     async available(_req: Request, res: Response, next: NextFunction) {
       try {
-        const weeks = await weekService.listAllWeeks();
+        const weeks = await deps.listAllWeeks.execute();
         res.json(weeks);
       } catch (err) {
         next(err);
@@ -23,7 +43,7 @@ export function createWeeksController(weekService: WeekApplicationService) {
 
     async current(_req: Request, res: Response, next: NextFunction) {
       try {
-        const week = await weekService.getCurrentWeek();
+        const week = await deps.getCurrentWeek.execute();
         res.json(week);
       } catch (err) {
         next(err);
@@ -33,7 +53,7 @@ export function createWeeksController(weekService: WeekApplicationService) {
     async preview(req: Request, res: Response, next: NextFunction) {
       try {
         const { weekId, records } = req.body;
-        const preview = await weekService.previewWeek(weekId, records);
+        const preview = await deps.previewWeek.execute(weekId, records);
         res.json(preview);
       } catch (err) {
         next(err);
@@ -43,7 +63,7 @@ export function createWeeksController(weekService: WeekApplicationService) {
     async save(req: Request, res: Response, next: NextFunction) {
       try {
         const { weekId, records } = req.body;
-        const result = await weekService.saveWeek(weekId, records);
+        const result = await deps.saveWeek.execute(weekId, records);
         res.json(result);
       } catch (err) {
         next(err);
@@ -52,7 +72,7 @@ export function createWeeksController(weekService: WeekApplicationService) {
 
     async getById(req: Request, res: Response, next: NextFunction) {
       try {
-        const week = await weekService.getWeekDetail(req.params.id as string);
+        const week = await deps.getWeekDetail.execute(req.params.id as string);
         res.json(week);
       } catch (err) {
         next(err);
@@ -62,7 +82,7 @@ export function createWeeksController(weekService: WeekApplicationService) {
     async update(req: Request, res: Response, next: NextFunction) {
       try {
         const { records } = req.body;
-        const result = await weekService.updateWeek(req.params.id as string, records);
+        const result = await deps.updateWeek.execute(req.params.id as string, records);
         res.json(result);
       } catch (err) {
         next(err);
@@ -71,7 +91,7 @@ export function createWeeksController(weekService: WeekApplicationService) {
 
     async getByWorkerAndWeek(req: Request, res: Response, next: NextFunction) {
       try {
-        const week = await weekService.getWeekDetailByWorker(
+        const week = await deps.getWeekDetailByWorker.execute(
           req.params.weekId as string,
           req.params.workerId as string
         );
@@ -83,7 +103,7 @@ export function createWeeksController(weekService: WeekApplicationService) {
 
     async delete(req: Request, res: Response, next: NextFunction) {
       try {
-        await weekService.deleteWeek(req.params.id as string);
+        await deps.deleteWeek.execute(req.params.id as string);
         res.status(204).send();
       } catch (err) {
         next(err);
