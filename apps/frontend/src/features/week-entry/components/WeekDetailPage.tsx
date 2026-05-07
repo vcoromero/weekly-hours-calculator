@@ -129,30 +129,30 @@ export function WeekDetailPage() {
               </div>
             </div>
           </CardHeader>
-          <CardContent>
+          <CardContent className="p-0">
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b text-left text-muted-foreground">
-                    <th className="pb-2 font-medium">Fecha</th>
-                    <th className="pb-2 font-medium text-right">Horas</th>
-                    <th className="pb-2 font-medium text-right">Costo/h</th>
-                    <th className="pb-2 font-medium text-right">Total</th>
-                    <th className="pb-2 font-medium">Descripción</th>
+                    <th className="p-4 pb-2 font-medium">Fecha</th>
+                    <th className="p-4 pb-2 font-medium text-right">Horas</th>
+                    <th className="p-4 pb-2 font-medium text-right">Costo/h</th>
+                    <th className="p-4 pb-2 font-medium text-right">Total</th>
+                    <th className="p-4 pb-2 font-medium">Descripción</th>
                   </tr>
                 </thead>
                 <tbody>
                   {group.records.map((record) => (
                     <tr key={record.id} className="border-b last:border-0">
-                      <td className="py-2">{formatDateShort(record.date)}</td>
-                      <td className="py-2 text-right">{record.hours}h</td>
-                      <td className="py-2 text-right">
+                      <td className="p-4 py-2">{formatDateShort(record.date)}</td>
+                      <td className="p-4 py-2 text-right">{record.hours}h</td>
+                      <td className="p-4 py-2 text-right">
                         {formatCurrency(record.hourlyRate)}
                       </td>
-                      <td className="py-2 text-right font-medium">
+                      <td className="p-4 py-2 text-right font-medium">
                         {formatCurrency(record.total || record.hours * record.hourlyRate)}
                       </td>
-                      <td className="py-2 text-muted-foreground">
+                      <td className="p-4 py-2 text-muted-foreground">
                         {record.description || "—"}
                       </td>
                     </tr>

@@ -69,6 +69,18 @@ export function createWeeksController(weekService: WeekApplicationService) {
       }
     },
 
+    async getByWorkerAndWeek(req: Request, res: Response, next: NextFunction) {
+      try {
+        const week = await weekService.getWeekDetailByWorker(
+          req.params.weekId,
+          req.params.workerId
+        );
+        res.json(week);
+      } catch (err) {
+        next(err);
+      }
+    },
+
     async delete(req: Request, res: Response, next: NextFunction) {
       try {
         await weekService.deleteWeek(req.params.id);

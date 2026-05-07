@@ -84,6 +84,15 @@ export function useWorkerDashboard(workerId: string) {
   });
 }
 
+export function useWorkerWeek(workerId: string, weekId: string) {
+  return useQuery({
+    queryKey: ["workers", workerId, "weeks", weekId],
+    queryFn: () => api.get<Week>(`/workers/${workerId}/weeks/${weekId}`),
+    enabled: !!workerId && !!weekId,
+    staleTime: 30_000,
+  });
+}
+
 export function useWeekById(weekId: string) {
   return useQuery({
     queryKey: ["weeks", weekId],

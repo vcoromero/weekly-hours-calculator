@@ -48,6 +48,7 @@ export function useAddRecord() {
         qc.invalidateQueries({ queryKey: ["weeks"] }),
         qc.invalidateQueries({ queryKey: ["weeks", "available"] }),
         qc.invalidateQueries({ queryKey: ["records"] }),
+        qc.invalidateQueries({ queryKey: ["workers"] }),
       ]);
     },
   });
@@ -63,6 +64,7 @@ export function useDeleteRecord() {
         qc.invalidateQueries({ queryKey: ["weeks"] }),
         qc.invalidateQueries({ queryKey: ["weeks", "available"] }),
         qc.invalidateQueries({ queryKey: ["records"] }),
+        qc.invalidateQueries({ queryKey: ["workers"] }),
       ]);
     },
   });
@@ -78,6 +80,8 @@ export function useSaveWeek() {
         qc.invalidateQueries({ queryKey: ["weeks"] }),
         qc.invalidateQueries({ queryKey: ["weeks", "current"] }),
         qc.invalidateQueries({ queryKey: ["weeks", "available"] }),
+        qc.invalidateQueries({ queryKey: ["records"] }),
+        qc.invalidateQueries({ queryKey: ["workers"] }),
       ]);
     },
   });
@@ -98,6 +102,8 @@ export function useUpdateWeek() {
         qc.invalidateQueries({ queryKey: ["weeks"] }),
         qc.invalidateQueries({ queryKey: ["weeks", variables.id] }),
         qc.invalidateQueries({ queryKey: ["weeks", "available"] }),
+        qc.invalidateQueries({ queryKey: ["records"] }),
+        qc.invalidateQueries({ queryKey: ["workers"] }),
       ]);
     },
   });

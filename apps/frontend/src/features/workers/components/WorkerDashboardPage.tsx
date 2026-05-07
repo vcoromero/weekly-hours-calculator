@@ -103,7 +103,7 @@ export function WorkerDashboardPage() {
 
         <div className="space-y-2">
           {weeks.map((week) => (
-            <Link key={week.weekId} to={`/weeks/${week.weekId}`}>
+            <Link key={week.weekId} to={`/workers/${id}/weeks/${week.weekId}`}>
               <Card className="hover:shadow-md transition-shadow cursor-pointer">
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between">
