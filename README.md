@@ -1,55 +1,55 @@
 # Weekly Hours Tracker
 
-Aplicacion web para registrar y calcular horas de trabajo semanales por empleado. Permite registrar jornadas con fecha, horas trabajadas y tarifa horaria, organizar los registros en semanas con estado draft/saved, y visualizar resumenes por trabajador.
+Web application for tracking and calculating weekly work hours per employee. It allows logging shifts with date, hours worked, and hourly rate, organizing records into weeks with draft/saved status, and viewing summaries per worker.
 
 ## Stack
 
-| Capa | Tecnologia |
-|------|-----------|
+| Layer | Technology |
+|-------|-----------|
 | Frontend | React 19, Vite 8, TypeScript 5.6 |
 | Backend | Express 5, TypeScript 5.6 |
-| Base de datos | PostgreSQL 16 |
+| Database | PostgreSQL 16 |
 | ORM | Prisma |
 | Monorepo | NX 22 |
-| Estilos | Tailwind CSS 4, shadcn/ui |
+| Styling | Tailwind CSS 4, shadcn/ui |
 | Routing | react-router v7 |
-| Fetching | TanStack Query v5 |
+| Data Fetching | TanStack Query v5 |
 | Auth | JWT + bcrypt |
 
-## Requisitos
+## Requirements
 
 - Node.js >= 18
 - Docker + Docker Compose
 - PostgreSQL (via Docker)
 
-## Inicio rapido
+## Quick Start
 
 ```bash
-# Instalar dependencias
+# Install dependencies
 npm install
 
-# Copiar y configurar variables de entorno del backend
+# Copy and configure backend environment variables
 cp apps/backend/.env.example apps/backend/.env
-# Editar apps/backend/.env con los valores correctos
+# Edit apps/backend/.env with the correct values
 
-# Crear archivo .env en raiz para Docker Compose
+# Create root .env file for Docker Compose
 # POSTGRES_USER=...
 # POSTGRES_PASSWORD=...
 # POSTGRES_DB=...
 
-# Iniciar base de datos
+# Start the database
 npm run docker:up
 
-# Ejecutar migraciones y seed
+# Run migrations and seed
 npm run db:generate
 npm run db:migrate
 npm run db:seed
 
-# Iniciar desarrollo (frontend + backend)
+# Start development (frontend + backend)
 npm run dev
 ```
 
 - Frontend: http://localhost:5173
 - Backend: http://localhost:3000/api
 
-Mas detalles tecnicos en [AGENTS.md](./AGENTS.md).
+More technical details in [AGENTS.md](./AGENTS.md).
