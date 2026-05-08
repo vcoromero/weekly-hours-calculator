@@ -1,5 +1,11 @@
 # AGENTS.md — Weekly Hours Tracker
 
+## Documentation
+
+The source of truth for this project lives in the Obsidian vault **`dev-notes`** (sibling to this repo), under `Projects/weekly-hours-calculator/`. Before starting work, read `06 - Stack & roadmap.md` to check current project progress.
+
+Hexagonal architecture guidance lives in the same vault under `Areas/Architectures/01 - Hexagonal architecture.md`.
+
 ## Monorepo & Commands
 
 - **Tool**: NX 22.7 (not npm workspaces). Root scripts delegate to NX: `npm run dev`, `npm run build`, `npm run lint`.
@@ -106,3 +112,4 @@ src/shared/
 - TypeScript strict mode (enforced in `tsconfig.base.json`).
 - Don't autocommit or push — always ask the user first.
 - Prefer small, focused functional components on the frontend.
+- **Language**: Code (variables, functions, comments, commits) in English. UI text (labels, messages, user-facing strings) in Spanish.
