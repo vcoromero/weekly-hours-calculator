@@ -4,6 +4,12 @@ import type { WeekCalculator } from "../../../domain/services/week-calculator.js
 import type { TotalsCalculator } from "../../../domain/services/totals-calculator.js";
 import type { WeekSummaryDto } from "../../dto/weeks/week-summary.dto.js";
 import type { WeekStatus } from "../../../domain/value-objects/week-status.vo.js";
+import type { PaginatedResponse } from "../../dto/shared/pagination.dto.js";
+
+export interface ListWeeksParams {
+  page: number;
+  pageSize: number;
+}
 
 export class ListWeeksUseCase {
   constructor(
@@ -13,19 +19,20 @@ export class ListWeeksUseCase {
     private readonly totalsCalc: TotalsCalculator
   ) {}
 
-  async execute(): Promise<WeekSummaryDto[]> {
-    const weeks = await this.weekRepo.findAllSaved();
+  async execute(params: ListWeeksParams): Promise<PaginatedResponse<WeekSummaryDto>> {
+    const skip = (params.page - 1) * params.pageSize;
+    const { weeks, total } = await this.weekRepo.findAllSavedPaginated(skip, params.pageSize);
 
-    const sortedWeeks = weeks.sort((a, b) => {
+    const sortedWeeks = [...weeks].sort((a, b) => {
       const weekNumA = this.weekCalc.getWeekNumber(a.startDate);
       const weekNumB = this.weekCalc.getWeekNumber(b.startDate);
       return weekNumB - weekNumA;
     });
 
-    const result: WeekSummaryDto[] = [];
+    const items: WeekSummaryDto[] = [];
     for (const week of sortedWeeks) {
       const records = await this.recordRepo.findByWeekSimple(week.id);
-      result.push({
+      items.push({
         id: week.id,
         label: week.label,
         startDate: this.weekCalc.formatDate(week.startDate),
@@ -44,6 +51,14 @@ export class ListWeeksUseCase {
       });
     }
 
-    return result;
+    return {
+      items,
+      pagination: {
+        page: params.page,
+        pageSize: params.pageSize,
+        total,
+        totalPages: Math.ceil(total / params.pageSize),
+      },
+    };
   }
 }

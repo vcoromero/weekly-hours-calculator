@@ -23,10 +23,12 @@ interface WeeksControllerDeps {
 
 export function createWeeksController(deps: WeeksControllerDeps) {
   return {
-    async list(_req: Request, res: Response, next: NextFunction) {
+    async list(req: Request, res: Response, next: NextFunction) {
       try {
-        const weeks = await deps.listWeeks.execute();
-        res.json(weeks);
+        const page = Math.max(1, parseInt(req.query.page as string) || 1);
+        const pageSize = Math.min(100, Math.max(1, parseInt(req.query.pageSize as string) || 10));
+        const result = await deps.listWeeks.execute({ page, pageSize });
+        res.json(result);
       } catch (err) {
         next(err);
       }

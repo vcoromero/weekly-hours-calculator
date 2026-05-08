@@ -53,7 +53,18 @@ export class ApiRequestError extends Error {
 }
 
 export const api = {
-  get: <T>(path: string) => request<T>(path),
+  get: <T>(path: string, queryParams?: Record<string, string | number | boolean | undefined>) => {
+    let url = path;
+    if (queryParams) {
+      const searchParams = new URLSearchParams();
+      for (const [key, value] of Object.entries(queryParams)) {
+        if (value !== undefined) searchParams.set(key, String(value));
+      }
+      const qs = searchParams.toString();
+      if (qs) url += `?${qs}`;
+    }
+    return request<T>(url);
+  },
   post: <T>(path: string, body?: unknown) =>
     request<T>(path, { method: "POST", body: JSON.stringify(body) }),
   put: <T>(path: string, body?: unknown) =>

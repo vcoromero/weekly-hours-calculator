@@ -13,7 +13,8 @@ export function InvoiceBuilderPage() {
   const [searchParams] = useSearchParams();
   const preselectedWorkerId = searchParams.get("workerId");
 
-  const { data: workers, isLoading: loadingWorkers } = useWorkers();
+  const { data: workersResult, isLoading: loadingWorkers } = useWorkers({ page: 1, pageSize: 100 });
+  const workers = workersResult?.items ?? [];
   const [selectedWorkerId, setSelectedWorkerId] = useState<string>(
     preselectedWorkerId || ""
   );
@@ -68,7 +69,7 @@ export function InvoiceBuilderPage() {
 
   if (loadingWorkers) return <Spinner />;
 
-  const selectedWorker = workers?.find((w) => w.id === selectedWorkerId);
+  const selectedWorker = workers.find((w) => w.id === selectedWorkerId);
 
   return (
     <div className="space-y-6">
@@ -100,7 +101,7 @@ export function InvoiceBuilderPage() {
             className="w-full border rounded-md px-3 py-2 text-sm bg-background"
           >
             <option value="">Seleccionar trabajador...</option>
-            {workers?.map((worker) => (
+            {workers.map((worker) => (
               <option key={worker.id} value={worker.id}>
                 {worker.name} ({worker.isRegular ? "Fijo" : "Ocasional"})
               </option>

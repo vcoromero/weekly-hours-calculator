@@ -75,6 +75,7 @@ Vite dev server proxies `/api` → `http://localhost:3000`. Frontend calls `fetc
 ### Entry points
 - `src/main.tsx` → `src/app/App.tsx` → `src/app/router.tsx`
 - `src/app/providers.tsx` — wraps QueryClient + Auth provider
+- Routes defined in `router.tsx`: `/`, `/week-entry`, `/weeks/:id`, `/weeks/:id/edit`, `/workers`, `/workers/:id/dashboard`, `/workers/:id/weeks/:weekId`, `/invoices/builder`
 
 ### Feature structure
 ```
@@ -82,11 +83,14 @@ src/features/
   dashboard/components/
   week-entry/components/    ← WeekEntryPage, WeekDetailPage, WorkerWeekDetailPage, RecordForm, RecordList, WeekPreview
   workers/components/       ← WorkersPage, WorkerDashboardPage
+  invoices/components/      ← InvoiceBuilderPage
   auth/components/
 src/shared/
   api/          ← queries.ts, mutations.ts, client.ts
   components/ui/ ← shadcn components
+  hooks/        ← useAuth.ts
   types/
+  utils/
 ```
 
 ### State & data fetching

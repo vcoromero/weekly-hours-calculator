@@ -1,13 +1,20 @@
+import { useState } from "react";
 import { useNavigate } from "react-router";
 import { useWeeks } from "@/shared/api/queries";
 import { Spinner } from "@/shared/components/ui/spinner";
 import { Button } from "@/shared/components/ui/button";
 import { WeekCard } from "./WeekCard";
+import { Pagination } from "@/shared/components/ui/pagination";
 import { Plus } from "lucide-react";
+
+const DEFAULT_PAGE_SIZE = 10;
 
 export function DashboardPage() {
   const navigate = useNavigate();
-  const { data: weeks, isLoading, error } = useWeeks();
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
+
+  const { data, isLoading, error } = useWeeks({ page, pageSize });
 
   return (
     <div className="space-y-6">
@@ -24,9 +31,7 @@ export function DashboardPage() {
         </Button>
       </div>
 
-      {isLoading && (
-        <Spinner />
-      )}
+      {isLoading && <Spinner />}
 
       {error && (
         <div className="rounded-lg border border-destructive/50 bg-destructive/10 p-4 text-sm text-destructive">
@@ -34,7 +39,7 @@ export function DashboardPage() {
         </div>
       )}
 
-      {weeks && weeks.length === 0 && (
+      {data && data.items.length === 0 && (
         <div className="text-center py-12 text-muted-foreground">
           <p className="text-lg font-medium">Sin semanas guardadas</p>
           <p className="text-sm mt-1">
@@ -43,12 +48,26 @@ export function DashboardPage() {
         </div>
       )}
 
-      {weeks && weeks.length > 0 && (
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {weeks.map((week) => (
+      {data && data.items.length > 0 && (
+        <div className="flex flex-col gap-3">
+          {data.items.map((week) => (
             <WeekCard key={week.id} week={week} />
           ))}
         </div>
+      )}
+
+      {data && (
+        <Pagination
+          page={data.pagination.page}
+          pageSize={data.pagination.pageSize}
+          total={data.pagination.total}
+          totalPages={data.pagination.totalPages}
+          onPageChange={setPage}
+          onPageSizeChange={(size) => {
+            setPageSize(size);
+            setPage(1);
+          }}
+        />
       )}
     </div>
   );

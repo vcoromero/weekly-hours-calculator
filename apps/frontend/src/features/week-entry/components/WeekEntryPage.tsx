@@ -37,7 +37,8 @@ export function WeekEntryPage() {
 
   const { data: currentWeek, isLoading: currentLoading } = useCurrentWeek();
   const { data: availableWeeks, isLoading: weeksLoading } = useAvailableWeeks();
-  const { data: workers } = useWorkers();
+  const { data: workersResult } = useWorkers({ page: 1, pageSize: 100 });
+  const workers = workersResult?.items ?? [];
 
   const available = availableWeeks || [];
   const [selectedWeekId, setSelectedWeekId] = useState<string>(urlWeekId || "");

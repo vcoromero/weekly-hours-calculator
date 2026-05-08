@@ -21,10 +21,15 @@ interface WorkersControllerDeps {
 
 export function createWorkersController(deps: WorkersControllerDeps) {
   return {
-    async list(_req: Request, res: Response, next: NextFunction) {
+    async list(req: Request, res: Response, next: NextFunction) {
       try {
-        const workers = await deps.listWorkers.execute();
-        res.json(workers);
+        const page = Math.max(1, parseInt(req.query.page as string) || 1);
+        const pageSize = Math.min(100, Math.max(1, parseInt(req.query.pageSize as string) || 10));
+        const search = typeof req.query.search === "string" ? req.query.search.trim() : undefined;
+        const isRegularParam = req.query.isRegular;
+        const isRegular = isRegularParam === "true" ? true : isRegularParam === "false" ? false : undefined;
+        const result = await deps.listWorkers.execute({ page, pageSize, search, isRegular });
+        res.json(result);
       } catch (err) {
         next(err);
       }

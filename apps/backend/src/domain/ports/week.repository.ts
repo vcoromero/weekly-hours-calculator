@@ -7,6 +7,7 @@ export interface WeekRepository {
   create(data: { label: string; startDate: Date; endDate: Date }): Promise<Week>;
   updateStatus(id: string, status: string): Promise<Week>;
   findAllSaved(): Promise<Week[]>;
+  findAllSavedPaginated(skip: number, take: number): Promise<{ weeks: Week[]; total: number }>;
   findAll(): Promise<Week[]>;
   delete(id: string): Promise<void>;
 }

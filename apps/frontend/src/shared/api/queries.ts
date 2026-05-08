@@ -7,20 +7,38 @@ import type {
   WorkerHistoryItem,
   WorkerStats,
   WorkerDashboard,
+  PaginatedResponse,
 } from "../types";
 
-export function useWorkers() {
+interface UseWeeksParams {
+  page: number;
+  pageSize: number;
+}
+
+export function useWeeks(params: UseWeeksParams) {
   return useQuery({
-    queryKey: ["workers"],
-    queryFn: () => api.get<Worker[]>("/workers"),
+    queryKey: ["weeks", params.page, params.pageSize],
+    queryFn: () => api.get<PaginatedResponse<WeekSummary>>("/weeks", { page: params.page, pageSize: params.pageSize }),
     staleTime: 30_000,
   });
 }
 
-export function useWeeks() {
+interface UseWorkersParams {
+  search?: string;
+  isRegular?: boolean;
+  page: number;
+  pageSize: number;
+}
+
+export function useWorkers(params: UseWorkersParams) {
   return useQuery({
-    queryKey: ["weeks"],
-    queryFn: () => api.get<WeekSummary[]>("/weeks"),
+    queryKey: ["workers", params.search, params.isRegular, params.page, params.pageSize],
+    queryFn: () => api.get<PaginatedResponse<Worker>>("/workers", {
+      page: params.page,
+      pageSize: params.pageSize,
+      search: params.search,
+      isRegular: params.isRegular,
+    }),
     staleTime: 30_000,
   });
 }
