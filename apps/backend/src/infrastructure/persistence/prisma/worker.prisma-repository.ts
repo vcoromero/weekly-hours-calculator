@@ -13,6 +13,26 @@ export class WorkerPrismaRepository implements WorkerRepository {
     return workers.map(WorkerMapper.toDomain);
   }
 
+  async findAllWithFilters(options: { search?: string; isRegular?: boolean; skip: number; take: number }): Promise<{ workers: Worker[]; total: number }> {
+    const where: { name?: { contains: string; mode: "insensitive" }; isRegular?: boolean } = {};
+    if (options.search) {
+      where.name = { contains: options.search, mode: "insensitive" };
+    }
+    if (options.isRegular !== undefined) {
+      where.isRegular = options.isRegular;
+    }
+    const [workers, total] = await Promise.all([
+      this.prisma.worker.findMany({
+        where,
+        orderBy: { name: "asc" },
+        skip: options.skip,
+        take: options.take,
+      }),
+      this.prisma.worker.count({ where }),
+    ]);
+    return { workers: workers.map(WorkerMapper.toDomain), total };
+  }
+
   async findById(id: string): Promise<Worker | null> {
     const worker = await this.prisma.worker.findUnique({ where: { id } });
     return worker ? WorkerMapper.toDomain(worker) : null;

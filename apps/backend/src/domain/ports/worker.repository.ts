@@ -2,6 +2,7 @@ import type { Worker } from "../entities/worker.entity.js";
 
 export interface WorkerRepository {
   findAll(): Promise<Worker[]>;
+  findAllWithFilters(options: { search?: string; isRegular?: boolean; skip: number; take: number }): Promise<{ workers: Worker[]; total: number }>;
   findById(id: string): Promise<Worker | null>;
   create(data: { name: string; isRegular: boolean }): Promise<Worker>;
   update(id: string, data: { name?: string; isRegular?: boolean }): Promise<Worker>;

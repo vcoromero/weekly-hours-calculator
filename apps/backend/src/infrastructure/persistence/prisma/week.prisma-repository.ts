@@ -50,6 +50,19 @@ export class WeekPrismaRepository implements WeekRepository {
     return weeks.map(WeekMapper.toDomain);
   }
 
+  async findAllSavedPaginated(skip: number, take: number): Promise<{ weeks: Week[]; total: number }> {
+    const [weeks, total] = await Promise.all([
+      this.prisma.week.findMany({
+        where: { status: "saved" },
+        orderBy: { startDate: "desc" },
+        skip,
+        take,
+      }),
+      this.prisma.week.count({ where: { status: "saved" } }),
+    ]);
+    return { weeks: weeks.map(WeekMapper.toDomain), total };
+  }
+
   async findAll(): Promise<Week[]> {
     const weeks = await this.prisma.week.findMany({
       orderBy: { startDate: "desc" },

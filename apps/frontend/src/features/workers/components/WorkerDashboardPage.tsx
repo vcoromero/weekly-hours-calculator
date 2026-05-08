@@ -11,9 +11,10 @@ export function WorkerDashboardPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { data: dashboard, isLoading } = useWorkerDashboard(id || "");
-  const { data: workers } = useWorkers();
+  const { data: workersResult } = useWorkers({ page: 1, pageSize: 100 });
+  const workers = workersResult?.items ?? [];
 
-  const worker = workers?.find((w) => w.id === id);
+  const worker = workers.find((w) => w.id === id);
 
   if (isLoading) return <Spinner />;
 

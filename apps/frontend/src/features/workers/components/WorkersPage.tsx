@@ -8,16 +8,34 @@ import { Input } from "@/shared/components/ui/input";
 import { Label } from "@/shared/components/ui/label";
 import { Badge } from "@/shared/components/ui/badge";
 import { Card, CardHeader, CardTitle, CardContent } from "@/shared/components/ui/card";
-import { Plus, Pencil, Trash2, BarChart3, ArrowLeft, X } from "lucide-react";
+import { Pagination } from "@/shared/components/ui/pagination";
+import { Plus, Pencil, Trash2, BarChart3, ArrowLeft, X, Search } from "lucide-react";
 
 interface WorkerFormData {
   name: string;
   isRegular: boolean;
 }
 
+type WorkerFilter = "all" | "regular" | "occasional";
+
+const DEFAULT_PAGE_SIZE = 10;
+
 export function WorkersPage() {
   const navigate = useNavigate();
-  const { data: workers, isLoading, error } = useWorkers();
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
+  const [search, setSearch] = useState("");
+  const [filter, setFilter] = useState<WorkerFilter>("all");
+
+  const isRegularParam = filter === "regular" ? true : filter === "occasional" ? false : undefined;
+
+  const { data, isLoading, error } = useWorkers({
+    page,
+    pageSize,
+    search: search || undefined,
+    isRegular: isRegularParam,
+  });
+
   const createWorker = useCreateWorker();
   const updateWorker = useUpdateWorker();
   const deleteWorker = useDeleteWorker();
@@ -28,7 +46,6 @@ export function WorkersPage() {
     name: "",
     isRegular: true,
   });
-  const [filter, setFilter] = useState<"all" | "regular" | "occasional">("all");
 
   const handleSubmit = async () => {
     if (!formData.name.trim()) return;
@@ -61,11 +78,10 @@ export function WorkersPage() {
     }
   };
 
-  const filtered = workers?.filter((w) => {
-    if (filter === "regular") return w.isRegular;
-    if (filter === "occasional") return !w.isRegular;
-    return true;
-  });
+  const handleSearch = (value: string) => {
+    setSearch(value);
+    setPage(1);
+  };
 
   return (
     <div className="space-y-6">
@@ -158,17 +174,31 @@ export function WorkersPage() {
         </Card>
       )}
 
-      <div className="flex gap-2">
-        {(["all", "regular", "occasional"] as const).map((f) => (
-          <Badge
-            key={f}
-            variant={filter === f ? "default" : "outline"}
-            className="cursor-pointer"
-            onClick={() => setFilter(f)}
-          >
-            {f === "all" ? "Todos" : f === "regular" ? "Fijos" : "Ocasionales"}
-          </Badge>
-        ))}
+      <div className="flex flex-col sm:flex-row gap-3">
+        <div className="relative flex-1 max-w-sm">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Buscar por nombre..."
+            value={search}
+            onChange={(e) => handleSearch(e.target.value)}
+            className="pl-9"
+          />
+        </div>
+        <div className="flex gap-2">
+          {(["all", "regular", "occasional"] as const).map((f) => (
+            <Badge
+              key={f}
+              variant={filter === f ? "default" : "outline"}
+              className="cursor-pointer"
+              onClick={() => {
+                setFilter(f);
+                setPage(1);
+              }}
+            >
+              {f === "all" ? "Todos" : f === "regular" ? "Fijos" : "Ocasionales"}
+            </Badge>
+          ))}
+        </div>
       </div>
 
       {isLoading && <Spinner />}
@@ -179,57 +209,71 @@ export function WorkersPage() {
         </p>
       )}
 
-      {filtered && filtered.length === 0 && (
+      {data && data.items.length === 0 && (
         <p className="text-center py-8 text-muted-foreground">
           Sin trabajadores
         </p>
       )}
 
-      <div className="grid gap-3 sm:grid-cols-2">
-        {filtered?.map((worker) => (
-          <Card key={worker.id}>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <span className="font-medium">{worker.name}</span>
-                  <span className="ml-2">
+      {data && data.items.length > 0 && (
+        <div className="flex flex-col gap-3">
+          {data.items.map((worker) => (
+            <Card key={worker.id}>
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <span className="font-medium">{worker.name}</span>
                     <Badge
                       variant={worker.isRegular ? "default" : "secondary"}
                       className="text-xs"
                     >
                       {worker.isRegular ? "Fijo" : "Ocasional"}
                     </Badge>
-                  </span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => navigate(`/workers/${worker.id}/dashboard`)}
+                    >
+                      <BarChart3 className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleEdit(worker)}
+                    >
+                      <Pencil className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleDelete(worker.id)}
+                      disabled={deleteWorker.isPending}
+                    >
+                      <Trash2 className="h-4 w-4 text-destructive" />
+                    </Button>
+                  </div>
                 </div>
-                <div className="flex items-center gap-1">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => navigate(`/workers/${worker.id}/dashboard`)}
-                  >
-                    <BarChart3 className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleEdit(worker)}
-                  >
-                    <Pencil className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleDelete(worker.id)}
-                    disabled={deleteWorker.isPending}
-                  >
-                    <Trash2 className="h-4 w-4 text-destructive" />
-                  </Button>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
+
+      {data && (
+        <Pagination
+          page={data.pagination.page}
+          pageSize={data.pagination.pageSize}
+          total={data.pagination.total}
+          totalPages={data.pagination.totalPages}
+          onPageChange={setPage}
+          onPageSizeChange={(size) => {
+            setPageSize(size);
+            setPage(1);
+          }}
+        />
+      )}
     </div>
   );
 }
