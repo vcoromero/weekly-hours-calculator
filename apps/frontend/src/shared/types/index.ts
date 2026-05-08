@@ -76,6 +76,7 @@ export interface WorkerDashboardWeek {
   totalEarnings: number;
   status: "draft" | "saved";
   recordCount: number;
+  isPaid: boolean;
 }
 
 export interface WorkerDashboard {

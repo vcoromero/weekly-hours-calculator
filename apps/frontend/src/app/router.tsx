@@ -23,6 +23,9 @@ const WorkerDashboardPage = lazy(() =>
 const WorkerWeekDetailPage = lazy(() =>
   import("@/features/week-entry/components/WorkerWeekDetailPage").then((m) => ({ default: m.WorkerWeekDetailPage }))
 );
+const InvoiceBuilderPage = lazy(() =>
+  import("@/features/invoices/components/InvoiceBuilderPage").then((m) => ({ default: m.InvoiceBuilderPage }))
+);
 
 export function AppRouter() {
   return (
@@ -37,6 +40,7 @@ export function AppRouter() {
           <Route path="/workers" element={<WorkersPage />} />
           <Route path="/workers/:id/dashboard" element={<WorkerDashboardPage />} />
           <Route path="/workers/:id/weeks/:weekId" element={<WorkerWeekDetailPage />} />
+          <Route path="/invoices/builder" element={<InvoiceBuilderPage />} />
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

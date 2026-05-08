@@ -4,9 +4,11 @@ import { JwtBcryptAuthAdapter } from "../auth/jwt-bcrypt.adapter.js";
 import { WorkerPrismaRepository } from "../persistence/prisma/worker.prisma-repository.js";
 import { RecordPrismaRepository } from "../persistence/prisma/record.prisma-repository.js";
 import { WeekPrismaRepository } from "../persistence/prisma/week.prisma-repository.js";
+import { WorkerPaymentPrismaRepository } from "../persistence/prisma/worker-payment.prisma-repository.js";
 
 import { WeekCalculator } from "../../domain/services/week-calculator.js";
 import { TotalsCalculator } from "../../domain/services/totals-calculator.js";
+import { InvoiceService } from "../../domain/services/invoice.service.js";
 
 import {
   CreateWorkerUseCase,
@@ -43,10 +45,13 @@ import {
   DeleteWeekUseCase,
 } from "../../application/use-cases/weeks/index.js";
 
+import { GenerateInvoicePdfUseCase } from "../../application/use-cases/invoices/generate-invoice-pdf.use-case.js";
+
 import { createAuthController } from "./controllers/auth.controller.js";
 import { createWorkersController } from "./controllers/workers.controller.js";
 import { createRecordsController } from "./controllers/records.controller.js";
 import { createWeeksController } from "./controllers/weeks.controller.js";
+import { createInvoiceController } from "./controllers/invoice.controller.js";
 import { createAuthMiddleware } from "./middleware/auth.middleware.js";
 
 const authAdapter = new JwtBcryptAuthAdapter();
@@ -54,9 +59,11 @@ const authAdapter = new JwtBcryptAuthAdapter();
 const workerRepo = new WorkerPrismaRepository(prisma);
 const recordRepo = new RecordPrismaRepository(prisma);
 const weekRepo = new WeekPrismaRepository(prisma);
+const paymentRepo = new WorkerPaymentPrismaRepository(prisma);
 
 const weekCalc = new WeekCalculator();
 const totalsCalc = new TotalsCalculator();
+const invoiceService = new InvoiceService();
 
 // Auth use cases
 const loginUseCase = new LoginUseCase(authAdapter);
@@ -89,6 +96,14 @@ const updateWeekUseCase = new UpdateWeekUseCase(weekRepo, recordRepo);
 const getWeekDetailByWorkerUseCase = new GetWeekDetailByWorkerUseCase(weekRepo, recordRepo, weekCalc, totalsCalc);
 const deleteWeekUseCase = new DeleteWeekUseCase(weekRepo);
 
+// Invoice use cases
+const generateInvoicePdfUseCase = new GenerateInvoicePdfUseCase(
+  workerRepo,
+  weekRepo,
+  recordRepo,
+  paymentRepo,
+);
+
 export const authController = createAuthController({ login: loginUseCase });
 export const workersController = createWorkersController({
   createWorker: createWorkerUseCase,
@@ -115,6 +130,10 @@ export const weeksController = createWeeksController({
   updateWeek: updateWeekUseCase,
   getWeekDetailByWorker: getWeekDetailByWorkerUseCase,
   deleteWeek: deleteWeekUseCase,
+});
+export const invoiceController = createInvoiceController({
+  generateInvoicePdf: generateInvoicePdfUseCase,
+  invoiceService,
 });
 
 export const requireAuth = createAuthMiddleware(verifyTokenUseCase);

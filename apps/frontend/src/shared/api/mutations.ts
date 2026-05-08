@@ -121,3 +121,34 @@ export function useDeleteWeek() {
     },
   });
 }
+
+export function useGenerateInvoicePDF() {
+  return useMutation({
+    mutationFn: async ({ workerId, weekIds }: { workerId: string; weekIds: string[] }) => {
+      const token = localStorage.getItem("auth_token");
+      const response = await fetch(`/api/workers/${workerId}/invoice/pdf`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ weekIds }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json().catch(() => ({ error: "Error generating invoice" }));
+        throw new Error(error.error || "Error generating invoice");
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `invoice-${workerId}-${Date.now()}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+    },
+  });
+}

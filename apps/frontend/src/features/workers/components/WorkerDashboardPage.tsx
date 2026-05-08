@@ -5,7 +5,7 @@ import { formatCurrency } from "@/shared/utils/formatters";
 import { Button } from "@/shared/components/ui/button";
 import { Badge } from "@/shared/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
-import { ArrowLeft, Calendar, DollarSign, Hash, Clock } from "lucide-react";
+import { ArrowLeft, Calendar, DollarSign, Hash, Clock, FileText } from "lucide-react";
 
 export function WorkerDashboardPage() {
   const { id } = useParams<{ id: string }>();
@@ -95,7 +95,15 @@ export function WorkerDashboardPage() {
       </div>
 
       <div>
-        <h2 className="text-lg font-semibold mb-3">Semanas trabajadas</h2>
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="text-lg font-semibold">Semanas trabajadas</h2>
+          <Link to={`/invoices/builder?workerId=${id}`}>
+            <Button variant="outline" size="sm">
+              <FileText className="h-4 w-4 mr-1" />
+              Generar factura
+            </Button>
+          </Link>
+        </div>
 
         {weeks.length === 0 && (
           <p className="text-muted-foreground text-sm">Sin registros</p>
@@ -117,6 +125,11 @@ export function WorkerDashboardPage() {
                         >
                           {week.status === "saved" ? "Guardado" : "Borrador"}
                         </Badge>
+                        {week.isPaid && (
+                          <Badge variant="outline" className="text-xs text-green-600 border-green-600">
+                            Pagada
+                          </Badge>
+                        )}
                       </div>
                       <div className="flex items-center gap-3 text-sm text-muted-foreground">
                         <span>{week.totalHours}h</span>
