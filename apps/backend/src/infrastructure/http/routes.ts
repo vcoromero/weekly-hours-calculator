@@ -5,6 +5,7 @@ import {
   workersController,
   recordsController,
   weeksController,
+  invoiceController,
   requireAuth,
 } from "./container.js";
 import { validateBody, validateParams } from "./middleware/validate.middleware.js";
@@ -73,6 +74,10 @@ const updateWeekSchema = z.object({
 // Auth
 router.post("/auth/login", validateBody(loginSchema), authController.login);
 
+const invoiceSchema = z.object({
+  weekIds: z.array(z.string().uuid()).min(1).max(2),
+});
+
 // Workers (protected)
 router.get("/workers", requireAuth, workersController.list);
 router.post("/workers", requireAuth, validateBody(createWorkerSchema), workersController.create);
@@ -82,6 +87,15 @@ router.delete("/workers/:id", requireAuth, validateParams(idParamSchema), worker
 router.get("/workers/:id/history", requireAuth, validateParams(idParamSchema), workersController.history);
 router.get("/workers/:id/stats", requireAuth, validateParams(idParamSchema), workersController.stats);
 router.get("/workers/:id/dashboard", requireAuth, validateParams(idParamSchema), workersController.dashboard);
+
+// Invoice PDF (protected)
+router.post(
+  "/workers/:id/invoice/pdf",
+  requireAuth,
+  validateParams(idParamSchema),
+  validateBody(invoiceSchema),
+  invoiceController.generatePdf,
+);
 
 // Worker-week (protected)
 router.get("/workers/:workerId/weeks/:weekId", requireAuth, validateParams(workerWeekParamsSchema), weeksController.getByWorkerAndWeek);
