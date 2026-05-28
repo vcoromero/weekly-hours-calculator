@@ -46,12 +46,14 @@ import {
 } from "../../application/use-cases/weeks/index.js";
 
 import { GenerateInvoicePdfUseCase } from "../../application/use-cases/invoices/generate-invoice-pdf.use-case.js";
+import { PayWorkerUseCase } from "../../application/use-cases/payments/pay-worker.use-case.js";
 
 import { createAuthController } from "./controllers/auth.controller.js";
 import { createWorkersController } from "./controllers/workers.controller.js";
 import { createRecordsController } from "./controllers/records.controller.js";
 import { createWeeksController } from "./controllers/weeks.controller.js";
 import { createInvoiceController } from "./controllers/invoice.controller.js";
+import { createPaymentController } from "./controllers/payment.controller.js";
 import { createAuthMiddleware } from "./middleware/auth.middleware.js";
 
 const authAdapter = new JwtBcryptAuthAdapter();
@@ -75,14 +77,14 @@ const getWorkerByIdUseCase = new GetWorkerByIdUseCase(workerRepo);
 const listWorkersUseCase = new ListWorkersUseCase(workerRepo);
 const updateWorkerUseCase = new UpdateWorkerUseCase(workerRepo);
 const deleteWorkerUseCase = new DeleteWorkerUseCase(workerRepo);
-const getWorkerHistoryUseCase = new GetWorkerHistoryUseCase(recordRepo, weekCalc, totalsCalc);
+const getWorkerHistoryUseCase = new GetWorkerHistoryUseCase(recordRepo, weekCalc, totalsCalc, paymentRepo);
 const getWorkerStatsUseCase = new GetWorkerStatsUseCase(recordRepo, totalsCalc);
-const getWorkerDashboardUseCase = new GetWorkerDashboardUseCase(recordRepo, weekCalc, totalsCalc, getWorkerStatsUseCase);
+const getWorkerDashboardUseCase = new GetWorkerDashboardUseCase(recordRepo, weekCalc, totalsCalc, getWorkerStatsUseCase, paymentRepo);
 
 // Record use cases
 const createRecordUseCase = new CreateRecordUseCase(recordRepo, weekRepo, weekCalc);
 const getRecordsByWeekUseCase = new GetRecordsByWeekUseCase(recordRepo, weekCalc, totalsCalc);
-const deleteRecordUseCase = new DeleteRecordUseCase(recordRepo);
+const deleteRecordUseCase = new DeleteRecordUseCase(recordRepo, paymentRepo);
 
 // Week use cases
 const getOrCreateCurrentWeekUseCase = new GetOrCreateCurrentWeekUseCase(weekRepo, weekCalc);
@@ -90,11 +92,11 @@ const getCurrentWeekUseCase = new GetCurrentWeekUseCase(getOrCreateCurrentWeekUs
 const listWeeksUseCase = new ListWeeksUseCase(weekRepo, recordRepo, weekCalc, totalsCalc);
 const listAllWeeksUseCase = new ListAllWeeksUseCase(weekRepo, weekCalc);
 const previewWeekUseCase = new PreviewWeekUseCase(weekRepo, workerRepo, weekCalc, totalsCalc);
-const saveWeekUseCase = new SaveWeekUseCase(weekRepo, recordRepo);
-const getWeekDetailUseCase = new GetWeekDetailUseCase(weekRepo, recordRepo, weekCalc, totalsCalc);
-const updateWeekUseCase = new UpdateWeekUseCase(weekRepo, recordRepo);
-const getWeekDetailByWorkerUseCase = new GetWeekDetailByWorkerUseCase(weekRepo, recordRepo, weekCalc, totalsCalc);
-const deleteWeekUseCase = new DeleteWeekUseCase(weekRepo);
+const saveWeekUseCase = new SaveWeekUseCase(weekRepo, recordRepo, paymentRepo);
+const getWeekDetailUseCase = new GetWeekDetailUseCase(weekRepo, recordRepo, weekCalc, totalsCalc, paymentRepo);
+const updateWeekUseCase = new UpdateWeekUseCase(weekRepo, recordRepo, paymentRepo);
+const getWeekDetailByWorkerUseCase = new GetWeekDetailByWorkerUseCase(weekRepo, recordRepo, weekCalc, totalsCalc, paymentRepo);
+const deleteWeekUseCase = new DeleteWeekUseCase(weekRepo, paymentRepo);
 
 // Invoice use cases
 const generateInvoicePdfUseCase = new GenerateInvoicePdfUseCase(
@@ -103,6 +105,9 @@ const generateInvoicePdfUseCase = new GenerateInvoicePdfUseCase(
   recordRepo,
   paymentRepo,
 );
+
+// Payment use cases
+const payWorkerUseCase = new PayWorkerUseCase(workerRepo, weekRepo, recordRepo, paymentRepo);
 
 export const authController = createAuthController({ login: loginUseCase });
 export const workersController = createWorkersController({
@@ -135,5 +140,6 @@ export const invoiceController = createInvoiceController({
   generateInvoicePdf: generateInvoicePdfUseCase,
   invoiceService,
 });
+export const paymentController = createPaymentController({ payWorker: payWorkerUseCase });
 
 export const requireAuth = createAuthMiddleware(verifyTokenUseCase);

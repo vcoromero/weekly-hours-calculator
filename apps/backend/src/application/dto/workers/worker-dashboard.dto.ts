@@ -9,6 +9,7 @@ export interface WorkerDashboardItemDto {
   totalEarnings: number;
   status: string;
   recordCount: number;
+  isPaid: boolean;
 }
 
 export interface WorkerDashboardDto {

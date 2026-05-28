@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { useNavigate } from "react-router";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -18,9 +17,8 @@ const loginSchema = z.object({
 type LoginFormData = z.infer<typeof loginSchema>;
 
 export function LoginForm() {
-  const { login } = useAuth();
+  const { login, error } = useAuth();
   const navigate = useNavigate();
-  const [serverError, setServerError] = useState<string | null>(null);
 
   const {
     register,
@@ -31,12 +29,11 @@ export function LoginForm() {
   });
 
   const onSubmit = async (data: LoginFormData) => {
-    setServerError(null);
     try {
       await login(data);
       navigate("/");
     } catch {
-      setServerError("Credenciales inválidas");
+      // error is already set by useAuth
     }
   };
 
@@ -80,8 +77,8 @@ export function LoginForm() {
               )}
             </div>
 
-            {serverError && (
-              <p className="text-sm text-destructive text-center">{serverError}</p>
+            {error && (
+              <p className="text-sm text-destructive text-center">{error}</p>
             )}
 
             <Button type="submit" className="w-full" disabled={isSubmitting}>
