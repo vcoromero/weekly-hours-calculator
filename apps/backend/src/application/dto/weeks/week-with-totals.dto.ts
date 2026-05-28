@@ -28,5 +28,4 @@ export interface WeekWithTotalsDto {
   totalsByWorker: WorkerTotalDto[];
   grandTotal: number;
   createdAt: Date;
-  payments: Array<{ workerId: string; paidAt: string }>;
 }

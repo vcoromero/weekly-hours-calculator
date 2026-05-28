@@ -15,8 +15,7 @@
     "docker:reset": "docker compose down -v"
   },
   "devDependencies": {
-    "nx": "22.7.1",
+    "nx": "^22.7.1",
     "typescript": "^5.6.0"
-  },
-  "nx": {}
+  }
 }

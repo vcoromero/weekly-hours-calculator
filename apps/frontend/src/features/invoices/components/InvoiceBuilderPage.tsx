@@ -1,12 +1,12 @@
 import { useState, useMemo } from "react";
 import { useSearchParams, useNavigate, Link } from "react-router";
 import { useWorkers, useWorkerDashboard } from "@/shared/api/queries";
-import { useGenerateInvoicePDF, usePayWorker } from "@/shared/api/mutations";
+import { useGenerateInvoicePDF } from "@/shared/api/mutations";
 import { Spinner } from "@/shared/components/ui/spinner";
 import { Button } from "@/shared/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card";
 import { formatCurrency } from "@/shared/utils/formatters";
-import { ArrowLeft, FileText, Check, CircleDollarSign } from "lucide-react";
+import { ArrowLeft, FileText, Check } from "lucide-react";
 
 export function InvoiceBuilderPage() {
   const navigate = useNavigate();
@@ -23,7 +23,6 @@ export function InvoiceBuilderPage() {
   );
 
   const generatePdf = useGenerateInvoicePDF();
-  const payWorker = usePayWorker();
   const [selectedWeekIds, setSelectedWeekIds] = useState<string[]>([]);
 
   const eligibleWeeks = useMemo(() => {
@@ -63,23 +62,6 @@ export function InvoiceBuilderPage() {
         workerId: selectedWorkerId,
         weekIds: selectedWeekIds,
       });
-    } catch {
-      // handled by mutation state
-    }
-  };
-
-  const handlePay = async () => {
-    if (!selectedWorkerId || selectedWeekIds.length === 0) return;
-    const confirmed = confirm(
-      `¿Marcar ${summary.count} semana(s) como pagadas?\n\nTotal: ${formatCurrency(summary.totalAmount)}\n\nEsta acción es irreversible. No se podrán modificar los registros de estas semanas.`
-    );
-    if (!confirmed) return;
-    try {
-      await payWorker.mutateAsync({
-        workerId: selectedWorkerId,
-        weekIds: selectedWeekIds,
-      });
-      navigate(`/workers/${selectedWorkerId}/dashboard`);
     } catch {
       // handled by mutation state
     }
@@ -218,20 +200,6 @@ export function InvoiceBuilderPage() {
                 {generatePdf.error && (
                   <p className="text-xs text-destructive text-center">
                     {(generatePdf.error as Error)?.message || "Error al generar PDF"}
-                  </p>
-                )}
-                <Button
-                  onClick={handlePay}
-                  disabled={payWorker.isPending}
-                  variant="secondary"
-                  className="w-full"
-                >
-                  <CircleDollarSign className="h-4 w-4 mr-1" />
-                  {payWorker.isPending ? "Procesando..." : "Marcar como pagadas"}
-                </Button>
-                {payWorker.error && (
-                  <p className="text-xs text-destructive text-center">
-                    {(payWorker.error as Error)?.message || "Error al marcar como pagadas"}
                   </p>
                 )}
               </CardContent>
