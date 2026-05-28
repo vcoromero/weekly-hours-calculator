@@ -6,6 +6,7 @@ import {
   recordsController,
   weeksController,
   invoiceController,
+  paymentController,
   requireAuth,
 } from "./container.js";
 import { validateBody, validateParams } from "./middleware/validate.middleware.js";
@@ -78,6 +79,10 @@ const invoiceSchema = z.object({
   weekIds: z.array(z.string().uuid()).min(1).max(2),
 });
 
+const payWorkerSchema = z.object({
+  weekIds: z.array(z.string().uuid()).min(1).max(10),
+});
+
 // Workers (protected)
 router.get("/workers", requireAuth, workersController.list);
 router.post("/workers", requireAuth, validateBody(createWorkerSchema), workersController.create);
@@ -87,6 +92,15 @@ router.delete("/workers/:id", requireAuth, validateParams(idParamSchema), worker
 router.get("/workers/:id/history", requireAuth, validateParams(idParamSchema), workersController.history);
 router.get("/workers/:id/stats", requireAuth, validateParams(idParamSchema), workersController.stats);
 router.get("/workers/:id/dashboard", requireAuth, validateParams(idParamSchema), workersController.dashboard);
+
+// Pay worker (protected)
+router.post(
+  "/workers/:id/pay",
+  requireAuth,
+  validateParams(idParamSchema),
+  validateBody(payWorkerSchema),
+  paymentController.pay,
+);
 
 // Invoice PDF (protected)
 router.post(

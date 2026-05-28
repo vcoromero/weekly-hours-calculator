@@ -5,6 +5,7 @@ export interface WorkerHistoryDto {
   endDate: string;
   totalHours: number;
   totalEarnings: number;
+  isPaid: boolean;
   records: Array<{
     id: string;
     date: string;
