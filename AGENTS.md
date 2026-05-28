@@ -34,8 +34,8 @@ Hexagonal architecture guidance: `~/Documents/dev/dev-notes/Areas/Architectures/
 
 ## 📝 Session Log (MANDATORY)
 
-At the **start** of every session, read `03 - Bitácora.md` in the dev-notes
-(`Projects/weekly-hours-calculator/`) to know the current project state and latest instructions.
+At the **start** of every session, read `xx - Bitácora.md` in the dev-notes
+(`Projects/weekly-hours-calculator/`) to know the current project state and latest instructions (if it does not exist, create it). 
 
 At the **end** of every session (or after significant progress), update `03 - Bitácora.md` recording:
 - Date and summary of what was worked on

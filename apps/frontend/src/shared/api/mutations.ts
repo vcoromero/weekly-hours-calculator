@@ -109,6 +109,20 @@ export function useUpdateWeek() {
   });
 }
 
+export function usePayWorker() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ workerId, weekIds }: { workerId: string; weekIds: string[] }) =>
+      api.post<{ paidWeeks: number; totalAmount: number }>(`/workers/${workerId}/pay`, { weekIds }),
+    onSuccess: async () => {
+      await Promise.all([
+        qc.invalidateQueries({ queryKey: ["workers"] }),
+        qc.invalidateQueries({ queryKey: ["weeks"] }),
+      ]);
+    },
+  });
+}
+
 export function useDeleteWeek() {
   const qc = useQueryClient();
   return useMutation({

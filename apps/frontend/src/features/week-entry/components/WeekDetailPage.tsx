@@ -77,6 +77,9 @@ export function WeekDetailPage() {
     (sum, w) => sum + w.totalAmount, 0
   ) || 0;
 
+  const hasPayments = !!(week.payments && week.payments.length > 0);
+  const paidWorkerIds = new Set(week.payments?.map((p) => p.workerId) || []);
+
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-2">
@@ -98,15 +101,22 @@ export function WeekDetailPage() {
             <Pencil className="h-4 w-4 mr-1" />
             Editar
           </Button>
-          <Button
-            variant="destructive"
-            size="sm"
-            onClick={handleDelete}
-            disabled={deleteWeek.isPending}
-          >
-            <Trash2 className="h-4 w-4 mr-1" />
-            {deleteWeek.isPending ? "Eliminando..." : "Eliminar"}
-          </Button>
+          {hasPayments ? (
+            <Button variant="outline" size="sm" disabled title="No se puede eliminar: tiene pagos asociados">
+              <Trash2 className="h-4 w-4 mr-1" />
+              Eliminar
+            </Button>
+          ) : (
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={handleDelete}
+              disabled={deleteWeek.isPending}
+            >
+              <Trash2 className="h-4 w-4 mr-1" />
+              {deleteWeek.isPending ? "Eliminando..." : "Eliminar"}
+            </Button>
+          )}
         </div>
       </div>
 
@@ -119,12 +129,15 @@ export function WeekDetailPage() {
       {groups.map((group) => (
         <Card key={group.workerId}>
           <CardHeader className="pb-2">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <User className="h-5 w-5 text-primary" />
-                <CardTitle className="text-base">{group.workerName}</CardTitle>
-              </div>
-              <div className="text-sm font-medium text-primary">
+            <div className="flex items-center gap-2">
+              <User className="h-5 w-5 text-primary" />
+              <CardTitle className="text-base">{group.workerName}</CardTitle>
+              {paidWorkerIds.has(group.workerId) && (
+                <span className="inline-flex items-center rounded-full border border-green-500/50 bg-green-500/10 px-2 py-0.5 text-xs font-medium text-green-600">
+                  Pagada
+                </span>
+              )}
+              <div className="ml-auto text-sm font-medium text-primary">
                 {group.totalHours}h — {formatCurrency(group.totalAmount)}
               </div>
             </div>
