@@ -48,6 +48,7 @@ export class PreviewWeekUseCase {
       totalsByWorker,
       grandTotal: this.totalsCalc.grandTotal(totalsByWorker),
       createdAt: week.createdAt,
+      payments: [],
     };
   }
 }

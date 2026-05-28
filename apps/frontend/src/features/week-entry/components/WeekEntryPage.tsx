@@ -18,7 +18,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/shared/components/ui/select";
-import type { CreateRecordInput, Week, WorkRecord, Worker } from "@/shared/types";
+import type { CreateRecordInput, Week, WorkRecord } from "@/shared/types";
 import { RecordForm } from "./RecordForm";
 import { RecordList } from "./RecordList";
 import { WeekPreview } from "./WeekPreview";
@@ -51,12 +51,20 @@ export function WeekEntryPage() {
   const week = activeWeek || currentWeek;
   const isLoading = currentLoading || weeksLoading || activeWeekLoading;
 
+  const records: WorkRecord[] = existingRecords || [];
+
+  const isEditing = !!urlWeekId;
+  const paidWorkerIds = new Set(week?.payments?.map((p) => p.workerId) || []);
+
   const addRecord = useAddRecord();
   const deleteRecord = useDeleteRecord();
   const saveWeek = useSaveWeek();
   const updateWeek = useUpdateWeek();
 
   const workersList = workers || [];
+  const availableWorkers = isEditing
+    ? workersList.filter((w) => !paidWorkerIds.has(w.id))
+    : workersList;
 
   const handleAddRecord = useCallback(
     async (data: CreateRecordInput) => {
@@ -75,16 +83,25 @@ export function WeekEntryPage() {
 
   const handleDeleteRecord = useCallback(
     (recordId: string) => {
+      const record = records.find((r) => r.id === recordId);
+      if (record && paidWorkerIds.has(record.workerId)) return;
       deleteRecord.mutate(recordId);
     },
-    [deleteRecord]
+    [deleteRecord, records, paidWorkerIds]
   );
 
   const handlePreview = async () => {
     if (!activeWeekId || !existingRecords || existingRecords.length === 0) return;
     setSaveError(null);
 
-    const previewRecords = existingRecords.map((r) => ({
+    const editableRecords = existingRecords.filter((r) => !paidWorkerIds.has(r.workerId));
+
+    if (editableRecords.length === 0) {
+      setSaveError("No hay registros editables: todos los trabajadores de esta semana ya fueron pagados.");
+      return;
+    }
+
+    const previewRecords = editableRecords.map((r) => ({
       workerId: r.workerId,
       date: r.date,
       hours: r.hours,
@@ -147,8 +164,6 @@ export function WeekEntryPage() {
   if (isLoading) {
     return <Spinner />;
   }
-
-  const records: WorkRecord[] = existingRecords || [];
 
   const selectedWeek = available.find((w) => w.id === activeWeekId);
   const isAlreadySaved = selectedWeek?.status === "saved";
@@ -218,7 +233,7 @@ export function WeekEntryPage() {
       <RecordForm
         weekStart={week?.startDate || ""}
         weekEnd={week?.endDate || ""}
-        workers={workersList}
+        workers={availableWorkers}
         onSubmit={handleAddRecord}
         isSubmitting={addRecord.isPending}
       />
@@ -233,6 +248,7 @@ export function WeekEntryPage() {
         records={records}
         onDelete={handleDeleteRecord}
         isDeleting={deleteRecord.isPending}
+        readOnlyWorkerIds={isEditing ? paidWorkerIds : undefined}
       />
 
       <div className="flex justify-end border-t pt-4">
