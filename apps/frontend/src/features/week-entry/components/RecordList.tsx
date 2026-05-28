@@ -3,13 +3,12 @@ import { formatDate, formatCurrency } from "@/shared/utils/formatters";
 import { recordTotal } from "@/shared/utils/calculations";
 import { Button } from "@/shared/components/ui/button";
 import { Card, CardContent } from "@/shared/components/ui/card";
-import { Trash2, Calendar, Lock } from "lucide-react";
+import { Trash2, Calendar } from "lucide-react";
 
 interface RecordListProps {
   records: WorkRecord[];
   onDelete: (recordId: string) => void;
   isDeleting?: boolean;
-  readOnlyWorkerIds?: Set<string>;
 }
 
 interface DateGroup {
@@ -33,7 +32,7 @@ function groupRecordsByDate(records: WorkRecord[]): DateGroup[] {
     .sort((a, b) => a.date.localeCompare(b.date));
 }
 
-export function RecordList({ records, onDelete, isDeleting, readOnlyWorkerIds }: RecordListProps) {
+export function RecordList({ records, onDelete, isDeleting }: RecordListProps) {
   if (records.length === 0) {
     return (
       <div className="text-center py-8 text-muted-foreground border rounded-lg">
@@ -65,42 +64,33 @@ export function RecordList({ records, onDelete, isDeleting, readOnlyWorkerIds }:
             </span>
           </div>
           <div className="space-y-2 pl-2">
-            {group.records.map((record) => {
-              const isReadOnly = readOnlyWorkerIds?.has(record.workerId);
-              return (
-                <Card key={record.id} className={isReadOnly ? "opacity-50" : ""}>
-                  <CardContent className="p-3 flex items-center justify-between">
-                    <div className="flex items-center gap-4 min-w-0">
-                      <div className="font-medium text-sm truncate w-32">
-                        {record.workerName || "Desconocido"}
-                      </div>
-                      <div className="text-sm">{record.hours}h</div>
-                      <div className="text-sm text-muted-foreground hidden sm:block">
-                        {formatCurrency(record.hourlyRate)}/h
-                      </div>
-                      <div className="text-sm font-medium text-primary">
-                        {formatCurrency(recordTotal(record.hours, record.hourlyRate))}
-                      </div>
+            {group.records.map((record) => (
+              <Card key={record.id}>
+                <CardContent className="p-3 flex items-center justify-between">
+                  <div className="flex items-center gap-4 min-w-0">
+                    <div className="font-medium text-sm truncate w-32">
+                      {record.workerName || "Desconocido"}
                     </div>
-                    {isReadOnly ? (
-                      <span title="Registro bloqueado: trabajador pagado">
-                        <Lock className="h-4 w-4 text-muted-foreground shrink-0" />
-                      </span>
-                    ) : (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => onDelete(record.id)}
-                        disabled={isDeleting}
-                        className="text-destructive hover:text-destructive shrink-0"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    )}
-                  </CardContent>
-                </Card>
-              );
-            })}
+                    <div className="text-sm">{record.hours}h</div>
+                    <div className="text-sm text-muted-foreground hidden sm:block">
+                      {formatCurrency(record.hourlyRate)}/h
+                    </div>
+                    <div className="text-sm font-medium text-primary">
+                      {formatCurrency(recordTotal(record.hours, record.hourlyRate))}
+                    </div>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => onDelete(record.id)}
+                    disabled={isDeleting}
+                    className="text-destructive hover:text-destructive shrink-0"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </CardContent>
+              </Card>
+            ))}
           </div>
         </div>
       ))}

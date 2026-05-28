@@ -6,8 +6,3 @@ dist/
 .DS_Store
 .nx/
 coverage/
-
-
-
-.nx/cache
-.nx/workspace-data

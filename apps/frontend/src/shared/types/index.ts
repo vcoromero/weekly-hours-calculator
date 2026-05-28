@@ -39,8 +39,6 @@ export interface Week {
   totalRecords?: number;
   totalAmount?: number;
   createdAt: string;
-  payments?: Array<{ workerId: string; paidAt: string }>;
-  isPaid?: boolean;
 }
 
 export interface WeekSummary {
@@ -76,7 +74,6 @@ export interface WorkerHistoryItem {
   endDate: string;
   totalHours: number;
   totalEarnings: number;
-  isPaid: boolean;
   records: WorkRecord[];
 }
 

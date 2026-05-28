@@ -6,13 +6,8 @@ import { env } from "../../config/env.js";
 
 export class JwtBcryptAuthAdapter implements AuthPort {
   async validateCredentials(email: string, password: string): Promise<boolean> {
-    if (email.toLowerCase() !== env.MASTER_EMAIL.toLowerCase()) return false;
-    try {
-      return await bcrypt.compare(password, env.MASTER_PASSWORD_HASH);
-    } catch (err) {
-      console.error("[auth] bcrypt.compare failed:", err);
-      return false;
-    }
+    if (email !== env.MASTER_EMAIL) return false;
+    return bcrypt.compare(password, env.MASTER_PASSWORD_HASH);
   }
 
   generateToken(user: AuthUser): string {

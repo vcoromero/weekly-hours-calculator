@@ -1,175 +1,119 @@
 # AGENTS.md — Weekly Hours Tracker
 
-## 📖 Documentation (MANDATORY)
+## Documentation
 
-The source of truth for this project lives in the Obsidian vault **`dev-notes`** (sibling to this repo), under `Projects/weekly-hours-calculator/`.
-
-**Read this documentation before touching any code.** It contains:
-- Roadmap and implementation phases
-- What is done and what is pending
-- Real stack and architecture decisions
-- Business rules
-- Complete setup guide
+The source of truth for this project lives in the Obsidian vault **`dev-notes`** (sibling to this repo), under `Projects/weekly-hours-calculator/`. Before starting work, read `06 - Stack & roadmap.md` to check current project progress.
 
 Hexagonal architecture guidance lives in the same vault under `Areas/Architectures/01 - Hexagonal architecture.md`.
 
-## 📝 Session Log (MANDATORY)
+## Monorepo & Commands
 
-At the start of every session, **read** `03 - Bitácora.md` in the dev-notes to know the current project state and the latest instructions.
+- **Tool**: NX 22.7 (not npm workspaces). Root scripts delegate to NX: `npm run dev`, `npm run build`, `npm run lint`.
+- **Apps**: `apps/backend` (Express), `apps/frontend` (React 19 + Vite 8). No library packages in active use.
+- **No test suite** exists in the repo. `lint` = `tsc --noEmit` for both apps.
 
-At the end of every session (or after any significant phase progress), **update** `03 - Bitácora.md` recording:
-- Date and summary of what was worked on
-- Instructions received from the user
-- Completed tasks (with checkboxes)
-- Next steps
-
-## Stack
-
-| Layer | Technology |
-|-------|------------|
-| Backend | Express 5 + TypeScript |
-| Frontend | React 19 + Vite 8 + TypeScript 5.6 |
-| UI | Tailwind CSS v4 + shadcn/radix-ui |
-| DB (dev) | PostgreSQL via Docker |
-| Auth | JWT (localStorage) |
-| Testing | N/A — no test suite |
-
-## Developer Commands
-
-### Infra (Docker)
+### Essential commands
 ```bash
+# Start everything (postgres + backend + frontend)
 npm run docker:up     # docker compose up -d postgres
 npm run docker:down   # docker compose down
 npm run docker:reset  # docker compose down -v (wipes DB volume)
-```
-
-### Dev servers
-```bash
 npm run dev           # nx run-many --target=dev --projects=frontend,backend --parallel
+
+# Type-check only
+npm run lint
+
+# Database
+npm run db:migrate   # prisma migrate dev
+npm run db:generate  # prisma generate
+npm run db:seed      # tsx prisma/seed.ts
+npm run db:studio    # prisma studio
 ```
 
-### Quality gates (run before committing)
-```bash
-npm run lint          # tsc --noEmit for both apps
+## Backend (`apps/backend`)
+
+### Stack
+- **Express 5** with `/api` prefix. Port 3000.
+- **Prisma** + PostgreSQL.
+- **Clean Architecture**: `domain/` (models, ports, services) → `application/` (services/use cases) → `infrastructure/` (controllers, repositories, auth adapters).
+- **DI container**: `infrastructure/http/container.ts` wires everything manually.
+
+### Entry points
+- `src/server.ts` — boots Express.
+- `src/infrastructure/http/app.ts` — mounts `/api` router + error handler.
+- `src/infrastructure/http/routes.ts` — all HTTP routes.
+
+### Env (required)
+Copy `apps/backend/.env.example` → `apps/backend/.env`. Required vars:
+- `DATABASE_URL` — Postgres connection string.
+- `JWT_SECRET` — min 10 chars.
+- `JWT_EXPIRES_IN` — token expiry (defaults to `"7d"`).
+- `MASTER_EMAIL`, `MASTER_PASSWORD_HASH` — seed admin user.
+- `FRONTEND_URL` — CORS origin (default `http://localhost:5173`).
+
+Root `.env` is **only for Docker Compose** (POSTGRES_USER, POSTGRES_PASSWORD, POSTGRES_DB). Backend reads its own env via `dotenv` from `apps/backend/.env`.
+
+### Prisma workflow
+1. Edit `prisma/schema.prisma`
+2. `npm run db:generate` (regenerates client types)
+3. `npm run db:migrate` (creates/apply migrations)
+4. `npm run db:seed` (optional, seeds master user)
+
+## Frontend (`apps/frontend`)
+
+### Stack
+- **React 19** + **Vite 8** + **TypeScript 5.6**
+- **react-router v7** (no `react-router-dom` — use `react-router` directly)
+- **TanStack Query v5**
+- **Tailwind CSS v4** + `@tailwindcss/vite` plugin
+- **shadcn/radix-ui** components in `shared/components/ui/`
+- Alias `@/` → `./src` (Vite resolve alias)
+
+### Dev proxy
+Vite dev server proxies `/api` → `http://localhost:3000`. Frontend calls `fetch('/api/...')`, not `fetch('http://localhost:3000/api/...')`.
+
+### Entry points
+- `src/main.tsx` → `src/app/App.tsx` → `src/app/router.tsx`
+- `src/app/providers.tsx` — wraps QueryClient + Auth provider
+- Routes defined in `router.tsx`: `/`, `/week-entry`, `/weeks/:id`, `/weeks/:id/edit`, `/workers`, `/workers/:id/dashboard`, `/workers/:id/weeks/:weekId`, `/invoices/builder`
+
+### Feature structure
+```
+src/features/
+  dashboard/components/
+  week-entry/components/    ← WeekEntryPage, WeekDetailPage, WorkerWeekDetailPage, RecordForm, RecordList, WeekPreview
+  workers/components/       ← WorkersPage, WorkerDashboardPage
+  invoices/components/      ← InvoiceBuilderPage
+  auth/components/
+src/shared/
+  api/          ← queries.ts, mutations.ts, client.ts
+  components/ui/ ← shadcn components
+  hooks/        ← useAuth.ts
+  types/
+  utils/
 ```
 
-### Database
-```bash
-npm run db:generate   # prisma generate
-npm run db:migrate    # prisma migrate dev
-npm run db:seed       # tsx prisma/seed.ts
-npm run db:studio     # prisma studio
-```
-
-## 🧩 Workflow
-
-Every feature or change must follow this order **strictly**:
-
-1. **Read documentation** — Review dev-notes (`Projects/weekly-hours-calculator/`) to understand current state.
-2. **Read session log** — Check `03 - Bitácora.md` for latest instructions.
-3. **Assess scope** — Analyze change size, impacted files/routes, estimated complexity.
-4. **Decide branch strategy** (MANDATORY):
-   - `feature/xxx` → new functionality
-   - `bugfix/xxx` → bug fixes
-   - `hotfix/xxx` → urgent patches
-   - `refactor/xxx` → refactoring
-   - Base branch: `develop`
-5. **Plan** — Define solution before touching code.
-6. **Implement** — Small, focused changes.
-7. **Quality gates** — Run `npm run lint` and fix all errors.
-8. **Small PRs** — Keep changes focused; if large, split into multiple PRs.
-9. **No auto-commit** — Never commit or push without explicit user review.
-
-## 🛡️ Quality Gates
-
-Before committing or pushing, ALL of these must pass:
-
-```bash
-npm run lint   # tsc --noEmit for both apps
-```
-
-If any fails, fix the issues before proceeding.
-
-## 🧱 Components
-
-- **Small** components with a single responsibility.
-- **Functional**, never class-based.
-- Each component in its **own file**.
-- Location: `src/features/<domain>/components/`
-- Base components live in `src/shared/components/ui/` — managed by shadcn CLI.
-
-## 📐 Coding Principles
-
-- **SOLID** and **Clean Code** as baseline standards.
-- **Naming conventions**:
-
-| Element | Convention | Example |
-|---------|-----------|---------|
-| Components | PascalCase | `WeekEntryPage.tsx` |
-| Functions / variables | camelCase | `getWorkers()` |
-| Files | kebab-case | `week-entry-page.tsx` |
-| Constants | UPPER_SNAKE_CASE | `MAX_HOURS` |
-
-## 🌐 Language
-
-- **Code and comments**: English (variable names, function names, docblocks, inline comments)
-- **UI labels, messages, user-facing strings**: Spanish
-
-## ✍️ Commits
-
-- **Conventional Commits**: `feat:`, `fix:`, `chore:`, `refactor:`, `docs:`
-- No auto-commit or auto-push without explicit review.
-
-## Key Quirks
-
-- **Auto-generated code**: Prisma client is generated by `npm run db:generate` — never edit `node_modules/.prisma/` directly.
-- **Path alias**: `@/` maps to `./src/` (check `tsconfig.json` and `vite.config.ts`).
-- **Week status constraints**:
-  - `draft` → can save
-  - `saved` → editable only via `updateWeek` which replaces all records
-  - `saveWeek` rejects if already saved
-- **Authentication**: Single master user seeded via `db:seed`. JWT stored in `localStorage`.
-
-## File Locations
-
-### Backend (`apps/backend`)
-- Entry: `src/server.ts`
-- App: `src/infrastructure/http/app.ts`
-- Routes: `src/infrastructure/http/routes.ts`
-- DI container: `src/infrastructure/http/container.ts`
-- Domain: `src/domain/` (models, ports, services)
-- Use cases: `src/application/` (services)
-- Infrastructure: `src/infrastructure/` (controllers, repositories, auth adapters)
-
-### Frontend (`apps/frontend`)
-- Entry: `src/main.tsx` → `src/app/App.tsx` → `src/app/router.tsx`
-- Providers: `src/app/providers.tsx`
-- Routes: `src/app/router.tsx`
-- Features: `src/features/<feature>/components/`
-- Shared: `src/shared/` (api/, components/ui/, hooks/, types/, utils/)
-- API hooks: `src/shared/api/queries.ts` (reads), `src/shared/api/mutations.ts` (writes)
-
-### Environment
-- Root `.env` — Docker Compose only (`POSTGRES_USER`, `POSTGRES_PASSWORD`, `POSTGRES_DB`)
-- `apps/backend/.env` — Backend vars (`DATABASE_URL`, `JWT_SECRET`, `JWT_EXPIRES_IN`, `MASTER_EMAIL`, `MASTER_PASSWORD_HASH`, `FRONTEND_URL`)
+### State & data fetching
+- All API hooks live in `shared/api/queries.ts` (reads) and `mutations.ts` (writes).
+- `useMutation` callbacks **must invalidate** affected query keys. Pattern: invalidate `["workers"]` prefix to bust dashboard/stats/history/week detail caches simultaneously.
+- `staleTime` varies by query (10s–30s). No optimistic updates.
 
 ## Database Schema (Prisma)
 
-```prisma
-Worker    — id, name (unique), isRegular, records[]
-WorkRecord — id, workerId, date, hours, hourlyRate, description, weekId
-Week      — id, label, startDate, endDate, status ("draft" | "saved"), records[]
-```
+- `Worker` — id, name (unique), isRegular, records[]
+- `WorkRecord` — id, workerId, date, hours, hourlyRate, description, weekId
+- `Week` — id, label, startDate, endDate, status ("draft" | "saved"), records[]
 
-## API Routes
+## Important Constraints
 
-| Method | Path | Description |
-|--------|------|-------------|
-| POST | /api/auth/login | Login |
-| GET | /api/workers | List workers |
-| GET | /api/workers/:id/stats | Worker stats |
-| GET | /api/weeks | List weeks |
-| GET | /api/weeks/:id | Week detail |
-| POST | /api/weeks | Create week |
-| PUT | /api/weeks/:id | Update week (replace all records) |
-| POST | /api/weeks/:id/save | Save week (finalize) |
+- **Backend build** = `tsc` (ESM, outputs to `dist/`). Must run `npm run db:generate` after schema changes or TS will fail on missing Prisma types.
+- **Week status**: `draft` → can save; `saved` → editable via `updateWeek` (replaces all records). `saveWeek` rejects if already saved.
+- **Authentication**: JWT stored in `localStorage` (see `useAuth.tsx`). Single master user seeded via `db:seed`.
+
+
+## Code Style
+
+- TypeScript strict mode (enforced in `tsconfig.base.json`).
+- Don't autocommit or push — always ask the user first.
+- Prefer small, focused functional components on the frontend.
+- **Language**: Code (variables, functions, comments, commits) in English. UI text (labels, messages, user-facing strings) in Spanish.

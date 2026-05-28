@@ -4,15 +4,13 @@ import type { WeekCalculator } from "../../../../domain/services/week-calculator
 import type { TotalsCalculator } from "../../../../domain/services/totals-calculator.js";
 import type { WeekWithTotalsDto } from "../../../dto/weeks/week-with-totals.dto.js";
 import type { WeekStatus } from "../../../../domain/value-objects/week-status.vo.js";
-import type { WorkerPayment } from "../../../../domain/entities/worker-payment.entity.js";
 
 export class BuildWeekWithTotalsHelper {
   static execute(
     week: Week,
     records: RecordWithWorker[],
     weekCalc: WeekCalculator,
-    totalsCalc: TotalsCalculator,
-    payments: WorkerPayment[] = [],
+    totalsCalc: TotalsCalculator
   ): WeekWithTotalsDto {
     const workerNames = new Map<string, string>();
     const formattedRecords = records.map((r) => {
@@ -41,10 +39,6 @@ export class BuildWeekWithTotalsHelper {
       totalsByWorker,
       grandTotal: totalsCalc.grandTotal(totalsByWorker),
       createdAt: week.createdAt,
-      payments: payments.map((p) => ({
-        workerId: p.workerId,
-        paidAt: p.paidAt.toISOString(),
-      })),
     };
   }
 }

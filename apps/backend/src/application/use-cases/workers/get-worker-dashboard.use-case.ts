@@ -1,5 +1,4 @@
 import type { RecordRepository } from "../../../domain/ports/record.repository.js";
-import type { WorkerPaymentRepository } from "../../../domain/ports/worker-payment.repository.js";
 import type { WeekCalculator } from "../../../domain/services/week-calculator.js";
 import type { TotalsCalculator } from "../../../domain/services/totals-calculator.js";
 import type { WorkerDashboardDto, WorkerDashboardItemDto } from "../../dto/workers/worker-dashboard.dto.js";
@@ -10,8 +9,7 @@ export class GetWorkerDashboardUseCase {
     private readonly recordRepo: RecordRepository,
     private readonly weekCalc: WeekCalculator,
     private readonly calculator: TotalsCalculator,
-    private readonly getStatsUseCase: GetWorkerStatsUseCase,
-    private readonly paymentRepo: WorkerPaymentRepository,
+    private readonly getStatsUseCase: GetWorkerStatsUseCase
   ) {}
 
   async execute(workerId: string): Promise<WorkerDashboardDto> {
@@ -29,7 +27,6 @@ export class GetWorkerDashboardUseCase {
         totalEarnings: 0,
         status: r.week.status,
         recordCount: 0,
-        isPaid: false,
       };
 
       existing.totalHours =
@@ -51,17 +48,8 @@ export class GetWorkerDashboardUseCase {
       return weekNumB - weekNumA;
     });
 
-    const allWeekIds = weeks.map((w) => w.weekId);
-    const payments = await this.paymentRepo.findByWorkerAndWeeks(workerId, allWeekIds);
-    const paidWeekIds = new Set(payments.map((p) => p.weekId));
-
-    const weeksWithPaid = weeks.map((w) => ({
-      ...w,
-      isPaid: paidWeekIds.has(w.weekId),
-    }));
-
     const stats = await this.getStatsUseCase.execute(workerId);
 
-    return { stats, weeks: weeksWithPaid };
+    return { stats, weeks };
   }
 }

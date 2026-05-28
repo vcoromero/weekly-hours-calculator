@@ -62,28 +62,19 @@ export function WorkerWeekDetailPage() {
           </p>
         </div>
         <div className="flex gap-2">
-          {!week.isPaid && (
-            <>
-              <Button variant="outline" size="sm" onClick={() => navigate(`/weeks/${weekId}/edit`)}>
-                <Pencil className="h-4 w-4 mr-1" />
-                Editar
-              </Button>
-              <Button
-                variant="destructive"
-                size="sm"
-                onClick={handleDelete}
-                disabled={deleteWeek.isPending}
-              >
-                <Trash2 className="h-4 w-4 mr-1" />
-                {deleteWeek.isPending ? "Eliminando..." : "Eliminar"}
-              </Button>
-            </>
-          )}
-          {week.isPaid && (
-            <span className="inline-flex items-center rounded-full border border-green-500/50 bg-green-500/10 px-3 py-1 text-xs font-medium text-green-600">
-              Pagada
-            </span>
-          )}
+          <Button variant="outline" size="sm" onClick={() => navigate(`/weeks/${weekId}/edit`)}>
+            <Pencil className="h-4 w-4 mr-1" />
+            Editar
+          </Button>
+          <Button
+            variant="destructive"
+            size="sm"
+            onClick={handleDelete}
+            disabled={deleteWeek.isPending}
+          >
+            <Trash2 className="h-4 w-4 mr-1" />
+            {deleteWeek.isPending ? "Eliminando..." : "Eliminar"}
+          </Button>
         </div>
       </div>
 
