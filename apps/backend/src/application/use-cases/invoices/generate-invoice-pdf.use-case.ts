@@ -64,7 +64,7 @@ export class GenerateInvoicePdfUseCase {
       const recordData: InvoiceRecordData[] = workerRecords
         .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
         .map((r) => ({
-          date: new Date(r.date).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' }),
+          date: new Date(r.date).toLocaleDateString('en-US', { day: 'numeric', month: 'short' }),
           hours: Math.round(r.hours * 100) / 100,
           hourlyRate: Math.round(r.hourlyRate * 100) / 100,
           total: Math.round(r.hours * r.hourlyRate * 100) / 100,
