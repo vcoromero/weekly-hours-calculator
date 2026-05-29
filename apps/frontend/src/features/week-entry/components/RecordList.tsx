@@ -1,4 +1,5 @@
 import type { WorkRecord } from "@/shared/types";
+import { groupRecordsByDate } from "@/shared/utils/grouping";
 import { formatDate, formatCurrency } from "@/shared/utils/formatters";
 import { recordTotal } from "@/shared/utils/calculations";
 import { Button } from "@/shared/components/ui/button";
@@ -10,27 +11,6 @@ interface RecordListProps {
   onDelete: (recordId: string) => void;
   isDeleting?: boolean;
   readOnlyWorkerIds?: Set<string>;
-}
-
-interface DateGroup {
-  date: string;
-  records: WorkRecord[];
-  dayTotal: number;
-}
-
-function groupRecordsByDate(records: WorkRecord[]): DateGroup[] {
-  const map = records.reduce<Record<string, WorkRecord[]>>((acc, r) => {
-    if (!acc[r.date]) acc[r.date] = [];
-    acc[r.date].push(r);
-    return acc;
-  }, {});
-  return Object.entries(map)
-    .map(([date, recs]) => ({
-      date,
-      records: recs,
-      dayTotal: recs.reduce((sum, r) => sum + recordTotal(r.hours, r.hourlyRate), 0),
-    }))
-    .sort((a, b) => a.date.localeCompare(b.date));
 }
 
 export function RecordList({ records, onDelete, isDeleting, readOnlyWorkerIds }: RecordListProps) {
