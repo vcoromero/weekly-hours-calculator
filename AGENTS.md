@@ -36,13 +36,18 @@ Hexagonal architecture guidance: `~/Documents/dev/dev-notes/Areas/Architectures/
 ## 📝 Session Log (MANDATORY)
 
 At the **start** of every session, read `10 - Bitácora.md` in the dev-notes
-(`Projects/weekly-hours-calculator/`) to know the current project state and latest instructions (if it does not exist, create it). 
+(`Projects/weekly-hours-calculator/`) to know the current project state and latest instructions (if it does not exist, create it).
 
-At the **end** of every session (or after significant progress), update `03 - Bitácora.md` recording:
+At the **end** of every session (or after significant progress), update `10 - Bitácora.md` recording:
 - Date and summary of what was worked on
 - Instructions received from the user
 - Completed tasks (with checkboxes)
 - Next steps
+
+**Al confirmar cada merge:** actualizar inmediatamente:
+- `10 - Bitácora.md` — nueva entrada con PR completado
+- Documentación relevante del área de trabajo (ej. `15 - Plan de tests unitarios.md` si es fase de tests)
+- Commit + push a dev-notes
 
 ## 🏗️ Developer Commands
 
@@ -242,6 +247,8 @@ Framework: **Vitest v3** with `globals: true`.
 | `WeekCalculator` — 21 tests | `formatters.ts` — 13 tests |
 | `TotalsCalculator` — 14 tests | `calculations.ts` — 11 tests |
 | | `cn()` — 6 tests |
+
+Consultar `15 - Plan de tests unitarios.md` para el estado completo de coverage y PRs pendientes.
 
 ### Commands
 
