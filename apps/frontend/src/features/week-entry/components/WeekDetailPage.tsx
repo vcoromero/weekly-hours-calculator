@@ -6,37 +6,7 @@ import { Button } from "@/shared/components/ui/button";
 import { Spinner } from "@/shared/components/ui/spinner";
 import { Card, CardHeader, CardTitle, CardContent } from "@/shared/components/ui/card";
 import { ArrowLeft, Pencil, Trash2, User } from "lucide-react";
-import type { Week } from "@/shared/types";
-
-function groupByWorker(week: Week) {
-  const groups = new Map<string, {
-    workerId: string;
-    workerName: string;
-    records: NonNullable<Week["records"]>;
-    totalHours: number;
-    totalAmount: number;
-  }>();
-
-  if (!week.records) return [];
-
-  for (const record of week.records) {
-    const existing = groups.get(record.workerId) || {
-      workerId: record.workerId,
-      workerName: record.workerName || "Unknown",
-      records: [],
-      totalHours: 0,
-      totalAmount: 0,
-    };
-    existing.records.push(record);
-    existing.totalHours = Math.round((existing.totalHours + record.hours) * 100) / 100;
-    existing.totalAmount = Math.round(
-      (existing.totalAmount + (record.total || record.hours * record.hourlyRate)) * 100
-    ) / 100;
-    groups.set(record.workerId, existing);
-  }
-
-  return Array.from(groups.values());
-}
+import { groupByWorker } from "@/shared/utils/grouping";
 
 export function WeekDetailPage() {
   const { id } = useParams<{ id: string }>();

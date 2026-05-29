@@ -1,30 +1,10 @@
 import type { Week, WorkRecord } from "@/shared/types";
+import { groupRecordsByDate } from "@/shared/utils/grouping";
 import { formatCurrency, formatDate } from "@/shared/utils/formatters";
 import { recordTotal } from "@/shared/utils/calculations";
 import { Button } from "@/shared/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/shared/components/ui/card";
 import { Check, Edit3, Calendar } from "lucide-react";
-
-interface DateGroup {
-  date: string;
-  records: WorkRecord[];
-  dayTotal: number;
-}
-
-function groupRecordsByDate(records: WorkRecord[]): DateGroup[] {
-  const map = records.reduce<Record<string, WorkRecord[]>>((acc, r) => {
-    if (!acc[r.date]) acc[r.date] = [];
-    acc[r.date].push(r);
-    return acc;
-  }, {});
-  return Object.entries(map)
-    .map(([date, recs]) => ({
-      date,
-      records: recs,
-      dayTotal: recs.reduce((sum, r) => sum + recordTotal(r.hours, r.hourlyRate), 0),
-    }))
-    .sort((a, b) => a.date.localeCompare(b.date));
-}
 
 interface WeekPreviewProps {
   week: Week;
