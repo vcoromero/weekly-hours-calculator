@@ -29,12 +29,13 @@ The source of truth for this project is at:
 - `03 - API spec.md` — backend endpoints
 - `04 - Frontend spec.md` — UI pages and flows
 - `05 - Backend spec.md` — backend architecture
+- `10 - Bitácora.md` 
 
 Hexagonal architecture guidance: `~/Documents/dev/dev-notes/Areas/Architectures/01 - Hexagonal architecture.md`
 
 ## 📝 Session Log (MANDATORY)
 
-At the **start** of every session, read `xx - Bitácora.md` in the dev-notes
+At the **start** of every session, read `10 - Bitácora.md` in the dev-notes
 (`Projects/weekly-hours-calculator/`) to know the current project state and latest instructions (if it does not exist, create it). 
 
 At the **end** of every session (or after significant progress), update `03 - Bitácora.md` recording:
