@@ -215,11 +215,6 @@ export function InvoiceBuilderPage() {
                   <FileText className="h-4 w-4 mr-1" />
                   {generatePdf.isPending ? "Generando..." : "Generar PDF"}
                 </Button>
-                {generatePdf.error && (
-                  <p className="text-xs text-destructive text-center">
-                    {(generatePdf.error as Error)?.message || "Error al generar PDF"}
-                  </p>
-                )}
                 <Button
                   onClick={handlePay}
                   disabled={payWorker.isPending}
@@ -229,11 +224,6 @@ export function InvoiceBuilderPage() {
                   <CircleDollarSign className="h-4 w-4 mr-1" />
                   {payWorker.isPending ? "Procesando..." : "Marcar como pagadas"}
                 </Button>
-                {payWorker.error && (
-                  <p className="text-xs text-destructive text-center">
-                    {(payWorker.error as Error)?.message || "Error al marcar como pagadas"}
-                  </p>
-                )}
               </CardContent>
             </Card>
           )}
