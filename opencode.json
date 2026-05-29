@@ -1,0 +1,8 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "permission": {
+    "external_directory": {
+      "~/Documents/dev/dev-notes/Projects/weekly-hours-tracker/**": "allow"
+    }
+  }
+}
