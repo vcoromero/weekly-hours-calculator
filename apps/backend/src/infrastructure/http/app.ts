@@ -6,7 +6,13 @@ import { errorHandler } from "./middleware/error.handler.js";
 
 const app = express();
 
-app.use(cors({ origin: env.FRONTEND_URL, credentials: true }));
+const allowedOrigins = [
+  env.FRONTEND_URL,
+  "http://localhost:5173",
+  "http://localhost:4173",
+].filter(Boolean);
+
+app.use(cors({ origin: allowedOrigins, credentials: true }));
 app.use(express.json());
 
 app.get("/api/health", (_req, res) => {
