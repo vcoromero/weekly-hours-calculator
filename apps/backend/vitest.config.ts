@@ -17,4 +17,17 @@ export default defineConfig({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  coverage: {
+    provider: "v8",
+    reporter: ["text", "html"],
+    include: ["src/**/*.ts"],
+    exclude: [
+      "src/**/__tests__/**",
+      "src/server.ts",
+      "src/infrastructure/http/container.ts",
+      "src/infrastructure/http/routes.ts",
+      "src/infrastructure/http/app.ts",
+      "src/infrastructure/persistence/**",
+    ],
+  },
 });

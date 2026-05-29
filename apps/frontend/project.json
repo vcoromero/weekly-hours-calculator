@@ -27,6 +27,12 @@
         "script": "test"
       }
     },
+    "test:coverage": {
+      "executor": "nx:run-script",
+      "options": {
+        "script": "test:coverage"
+      }
+    },
     "preview": {
       "executor": "nx:run-script",
       "options": {

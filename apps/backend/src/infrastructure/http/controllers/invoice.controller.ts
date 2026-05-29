@@ -17,7 +17,9 @@ export function createInvoiceController(deps: InvoiceControllerDeps) {
         const invoiceData = await deps.generateInvoicePdf.execute({ workerId: id, weekIds });
         const pdfBuffer = deps.invoiceService.generatePdf(invoiceData);
 
-        const filename = `invoice-${invoiceData.workerName.replace(/\s+/g, '_')}-${Date.now()}.pdf`;
+        const weekNumbers = invoiceData.weeks.map((w) => w.label.match(/Semana (\d+)/)?.[1] ?? '?');
+        const weekWord = weekNumbers.length === 1 ? 'week' : 'weeks';
+        const filename = `${invoiceData.workerName.replace(/\s+/g, '_')}-${weekWord}-${weekNumbers.join('-')}.pdf`;
 
         res.setHeader('Content-Type', 'application/pdf');
         res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
