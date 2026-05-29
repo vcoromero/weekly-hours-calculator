@@ -27,6 +27,12 @@
         "script": "test"
       }
     },
+    "test:coverage": {
+      "executor": "nx:run-script",
+      "options": {
+        "script": "test:coverage"
+      }
+    },
     "db:migrate": {
       "executor": "nx:run-script",
       "options": {

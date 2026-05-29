@@ -24,4 +24,18 @@ export default defineConfig({
     environment: "node",
     include: ["src/**/*.test.ts"],
   },
+  coverage: {
+    provider: "v8",
+    reporter: ["text", "html"],
+    include: ["src/**/*.{ts,tsx}"],
+    exclude: [
+      "src/**/__tests__/**",
+      "src/main.tsx",
+      "src/vite-env.d.ts",
+      "src/index.css",
+      "src/app/router.tsx",
+      "src/app/providers.tsx",
+      "src/shared/components/ui/**",
+    ],
+  },
 });
