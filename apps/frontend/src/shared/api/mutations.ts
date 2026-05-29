@@ -163,7 +163,9 @@ export function useGenerateInvoicePDF() {
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `invoice-${workerId}-${Date.now()}.pdf`;
+      const disposition = response.headers.get("Content-Disposition");
+      const match = disposition?.match(/filename="(.+)"/);
+      a.download = match ? match[1] : "invoice.pdf";
       document.body.appendChild(a);
       a.click();
       a.remove();
