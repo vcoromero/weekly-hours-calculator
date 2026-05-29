@@ -66,7 +66,7 @@ describe("groupRecordsByDate", () => {
 
 describe("groupByWorker", () => {
   it("empty records returns empty array", () => {
-    const week = { id: "w1", label: "W1", startDate: "2026-05-25", endDate: "2026-05-31", status: "draft" as const, records: [] };
+    const week = { id: "w1", label: "W1", startDate: "2026-05-25", endDate: "2026-05-31", status: "draft" as const, records: [], createdAt: "2026-05-25" };
     expect(groupByWorker(week)).toEqual([]);
   });
 
@@ -78,6 +78,7 @@ describe("groupByWorker", () => {
       endDate: "2026-05-31",
       status: "draft" as const,
       records: [{ id: "r1", workerId: "alice", workerName: "Alice", date: "2026-05-25", hours: 8, hourlyRate: 25 }],
+      createdAt: "2026-05-25",
     };
     const result = groupByWorker(week);
     expect(result).toHaveLength(1);
@@ -97,6 +98,7 @@ describe("groupByWorker", () => {
         { id: "r1", workerId: "alice", workerName: "Alice", date: "2026-05-25", hours: 4, hourlyRate: 20, total: 80 },
         { id: "r2", workerId: "alice", workerName: "Alice", date: "2026-05-26", hours: 8, hourlyRate: 20, total: 160 },
       ],
+      createdAt: "2026-05-25",
     };
     const result = groupByWorker(week);
     expect(result).toHaveLength(1);
@@ -116,6 +118,7 @@ describe("groupByWorker", () => {
         { id: "r1", workerId: "alice", workerName: "Alice", date: "2026-05-25", hours: 8, hourlyRate: 25, total: 200 },
         { id: "r2", workerId: "bob", workerName: "Bob", date: "2026-05-25", hours: 6, hourlyRate: 30, total: 180 },
       ],
+      createdAt: "2026-05-25",
     };
     const result = groupByWorker(week);
     expect(result).toHaveLength(2);
@@ -131,6 +134,7 @@ describe("groupByWorker", () => {
       records: [
         { id: "r1", workerId: "alice", workerName: "Alice", date: "2026-05-25", hours: 8, hourlyRate: 25, total: 210 },
       ],
+      createdAt: "2026-05-25",
     };
     const result = groupByWorker(week);
     expect(result[0].totalAmount).toBe(210);
@@ -146,6 +150,7 @@ describe("groupByWorker", () => {
       records: [
         { id: "r1", workerId: "alice", workerName: "Alice", date: "2026-05-25", hours: 8, hourlyRate: 25, total: 0 },
       ],
+      createdAt: "2026-05-25",
     };
     const result = groupByWorker(week);
     expect(result[0].totalAmount).toBe(200);
