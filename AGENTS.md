@@ -12,7 +12,7 @@
 | Routing | react-router v7 (`react-router` directly, no `react-router-dom`) |
 | State | TanStack Query v5 |
 | Tooling | NX 22.7 (not npm workspaces), tsx, Vite dev proxy |
-| Testing | None yet |
+| Testing | Vitest v3 |
 
 ## 📖 Documentation (MANDATORY)
 
@@ -57,7 +57,8 @@ npm run docker:reset  # docker compose down -v (wipes DB volume)
 ```bash
 npm run dev           # nx run-many --target=dev --projects=frontend,backend --parallel
 npm run build         # nx run-many --target=build --projects=frontend,backend
-npm run lint          # nx run-many --target=lint (tsc --noEmit for both apps)
+npm run lint          # nx run-many --target=lint --projects=frontend,backend
+npm test              # nx run-many --target=test --projects=frontend,backend
 ```
 
 ### Database (Prisma)
@@ -131,9 +132,10 @@ Before committing or pushing, ALL of these must pass:
 
 ```bash
 npm run lint   # TypeScript type-check (tsc --noEmit) for both apps
+npm test      # Vitest unit tests for both apps must pass
 ```
 
-If it fails, fix the issues before proceeding. There is no auto-fix — TypeScript errors must be resolved manually.
+If either fails, fix the issues before proceeding. There is no auto-fix — errors must be resolved manually.
 
 ## ⚠️ Key Quirks & Constraints
 
@@ -219,12 +221,33 @@ Prisma client is generated at `node_modules/.prisma/client` — never edit direc
 
 ## 🧪 Testing
 
-No test suite exists in the repo yet. `npm run lint` (= `tsc --noEmit` for both apps) is the current quality gate.
+Framework: **Vitest v3** with `globals: true`.
 
-When a test suite is added, follow:
+| App | Config | Environment | Include pattern |
+|-----|--------|-------------|-----------------|
+| Backend | `vitest.config.ts` | `node` | `src/**/*.test.ts` |
+| Frontend | `vite.config.ts` (`test` block) | `node` | `src/**/*.test.ts` |
+
+### Conventions
+
+- Test files co-located in `__tests__/` directories next to the source file
+- Extension: `.test.ts` (pure logic) or `.test.tsx` (React components)
+- Use named imports from `vitest`: `describe`, `it`, `expect`, `beforeEach`
+- No snapshots without explicit approval
+
+### Current coverage (P0 — pure functions)
+
+| Backend | Frontend |
+|---------|----------|
+| `WeekCalculator` — 21 tests | `formatters.ts` — 13 tests |
+| `TotalsCalculator` — 14 tests | `calculations.ts` — 11 tests |
+| | `cn()` — 6 tests |
+
+### Commands
+
 ```bash
-npm test                        # All tests
-npm test -- --filter="TestName" # Single test
+npm test                        # All tests (nx run-many --target=test)
+npm test -- --filter="TestName" # Single test (vitest --filter pattern)
 ```
 
 ## Authentication

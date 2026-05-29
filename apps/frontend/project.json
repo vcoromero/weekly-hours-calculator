@@ -21,6 +21,12 @@
         "script": "lint"
       }
     },
+    "test": {
+      "executor": "nx:run-script",
+      "options": {
+        "script": "test"
+      }
+    },
     "preview": {
       "executor": "nx:run-script",
       "options": {
