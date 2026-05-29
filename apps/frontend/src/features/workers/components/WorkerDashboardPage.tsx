@@ -323,12 +323,6 @@ export function WorkerDashboardPage() {
             </div>
           )}
 
-          {payWorker.error && (
-            <p className="text-xs text-destructive text-center">
-              {(payWorker.error as Error)?.message || "Error al marcar como pagadas"}
-            </p>
-          )}
-
           <DialogFooter>
             <Button
               variant="outline"
@@ -412,12 +406,6 @@ export function WorkerDashboardPage() {
                 </span>
               </div>
             </div>
-          )}
-
-          {generatePdf.error && (
-            <p className="text-xs text-destructive text-center">
-              {(generatePdf.error as Error).message || "Error al generar PDF"}
-            </p>
           )}
 
           <DialogFooter>

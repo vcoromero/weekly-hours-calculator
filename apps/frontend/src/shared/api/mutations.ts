@@ -1,4 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 import { api } from "./client";
 import type { Worker, CreateRecordInput, Week } from "../types";
 
@@ -114,11 +115,15 @@ export function usePayWorker() {
   return useMutation({
     mutationFn: ({ workerId, weekIds }: { workerId: string; weekIds: string[] }) =>
       api.post<{ paidWeeks: number; totalAmount: number }>(`/workers/${workerId}/pay`, { weekIds }),
-    onSuccess: async () => {
+    onSuccess: async (data) => {
       await Promise.all([
         qc.invalidateQueries({ queryKey: ["workers"] }),
         qc.invalidateQueries({ queryKey: ["weeks"] }),
       ]);
+      toast.success(`${data.paidWeeks} week(s) marked as paid`);
+    },
+    onError: (err: Error) => {
+      toast.error(err.message || "Error marking as paid");
     },
   });
 }
@@ -163,6 +168,12 @@ export function useGenerateInvoicePDF() {
       a.click();
       a.remove();
       window.URL.revokeObjectURL(url);
+    },
+    onSuccess: () => {
+      toast.success("Invoice PDF generated successfully");
+    },
+    onError: (err: Error) => {
+      toast.error(err.message || "Error generating invoice");
     },
   });
 }
