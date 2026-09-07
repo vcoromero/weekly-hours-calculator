@@ -98,10 +98,10 @@ export function WeekEntryPage() {
   );
 
   const handlePreview = async () => {
-    if (!activeWeekId || unsavedRecords.length === 0) return;
+    if (!activeWeekId || records.length === 0) return;
     setSaveError(null);
 
-    const editableRecords = unsavedRecords.filter((r) => !paidWorkerIds.has(r.workerId));
+    const editableRecords = records.filter((r) => !paidWorkerIds.has(r.workerId));
 
     if (editableRecords.length === 0) {
       setSaveError("No hay registros editables: todos los trabajadores de esta semana ya fueron pagados.");
@@ -276,7 +276,7 @@ export function WeekEntryPage() {
       </div>
 
       <div className="flex justify-end border-t pt-4">
-        <Button onClick={handlePreview} disabled={unsavedRecords.length === 0}>
+        <Button onClick={handlePreview} disabled={records.length === 0}>
           Vista previa y guardar
         </Button>
       </div>
