@@ -8,6 +8,7 @@ import type { GetWeekDetailUseCase } from "../../../application/use-cases/weeks/
 import type { UpdateWeekUseCase } from "../../../application/use-cases/weeks/update-week.use-case.js";
 import type { GetWeekDetailByWorkerUseCase } from "../../../application/use-cases/weeks/get-week-detail-by-worker.use-case.js";
 import type { DeleteWeekUseCase } from "../../../application/use-cases/weeks/delete-week.use-case.js";
+import type { LockDayUseCase } from "../../../application/use-cases/weeks/lock-day.use-case.js";
 
 interface WeeksControllerDeps {
   getCurrentWeek: GetCurrentWeekUseCase;
@@ -19,6 +20,7 @@ interface WeeksControllerDeps {
   updateWeek: UpdateWeekUseCase;
   getWeekDetailByWorker: GetWeekDetailByWorkerUseCase;
   deleteWeek: DeleteWeekUseCase;
+  lockDay: LockDayUseCase;
 }
 
 export function createWeeksController(deps: WeeksControllerDeps) {
@@ -107,6 +109,15 @@ export function createWeeksController(deps: WeeksControllerDeps) {
       try {
         await deps.deleteWeek.execute(req.params.id as string);
         res.status(204).send();
+      } catch (err) {
+        next(err);
+      }
+    },
+
+    async lockDay(req: Request, res: Response, next: NextFunction) {
+      try {
+        const result = await deps.lockDay.execute(req.params.weekId as string);
+        res.json(result);
       } catch (err) {
         next(err);
       }

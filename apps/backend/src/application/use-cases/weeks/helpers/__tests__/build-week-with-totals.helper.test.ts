@@ -25,6 +25,7 @@ function makeRecord(overrides?: Partial<RecordWithWorker>): RecordWithWorker {
     hourlyRate: 25,
     description: "Cleaning",
     weekId: "week-1",
+    dayLockedAt: null,
     createdAt: new Date("2026-05-30"),
     worker: { id: "worker-1", name: "Alice" },
     week: { id: "week-1", label: "W23", startDate: new Date("2026-05-30"), endDate: new Date("2026-06-05"), status: "draft" },

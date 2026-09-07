@@ -35,6 +35,23 @@ export class CreateRecordUseCase {
       });
     }
 
+    // Check if existing unlocked records in this week span a different date
+    const existingRecords = await this.recordRepo.findByWeekSimple(targetWeek.id);
+    const unlockedRecords = existingRecords.filter((r) => r.dayLockedAt === null);
+
+    if (unlockedRecords.length > 0) {
+      const newDateStr = data.date;
+      const existingDates = new Set(
+        unlockedRecords.map((r) => r.date.toISOString().slice(0, 10)),
+      );
+
+      if (!existingDates.has(newDateStr)) {
+        throw new RecordError(
+          "Cannot add record: draft already has records from a different date. Lock or clear existing records first.",
+        );
+      }
+    }
+
     const record = await this.recordRepo.create({
       ...data,
       weekId: targetWeek.id,

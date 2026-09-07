@@ -10,6 +10,7 @@ describe("RecordMapper", () => {
     hourlyRate: 25,
     description: "Cleaning",
     weekId: "week-1",
+    dayLockedAt: null,
     createdAt: new Date("2026-01-15"),
   };
 
@@ -53,6 +54,18 @@ describe("RecordMapper", () => {
     it("maps weekId", () => {
       const result = RecordMapper.toDomain(baseRecord);
       expect(result.weekId).toBe("week-1");
+    });
+
+    it("maps null dayLockedAt", () => {
+      const result = RecordMapper.toDomain(baseRecord);
+      expect(result.dayLockedAt).toBeNull();
+    });
+
+    it("maps dayLockedAt as Date object", () => {
+      const lockedAt = new Date("2026-01-15T12:00:00Z");
+      const record = { ...baseRecord, dayLockedAt: lockedAt };
+      const result = RecordMapper.toDomain(record);
+      expect(result.dayLockedAt).toBe(lockedAt);
     });
 
     it("maps createdAt", () => {
