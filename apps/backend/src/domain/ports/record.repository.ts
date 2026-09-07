@@ -21,6 +21,6 @@ export interface RecordRepository {
   deleteByWeek(weekId: string): Promise<void>;
   createMany(data: Array<CreateRecordInput & { weekId: string }>): Promise<void>;
   findByWeekSimple(weekId: string): Promise<WorkRecord[]>;
-  lockByWeekAndDate(weekId: string, date: Date, lockedAt: Date): Promise<number>;
-  unlockByWeekAndDate(weekId: string, date: Date): Promise<number>;
+  markDaySaved(weekId: string, date: Date, savedAt: Date): Promise<number>;
+  unmarkDaySaved(weekId: string, date: Date): Promise<number>;
 }

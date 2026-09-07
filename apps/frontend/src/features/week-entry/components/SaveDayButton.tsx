@@ -1,5 +1,5 @@
 import type { WorkRecord } from "@/shared/types";
-import { useLockDay } from "@/shared/api/mutations";
+import { useSaveDay } from "@/shared/api/mutations";
 import { Button } from "@/shared/components/ui/button";
 import { Alert, AlertDescription } from "@/shared/components/ui/alert";
 import { formatDate } from "@/shared/utils/formatters";
@@ -16,7 +16,7 @@ export function SaveDayButton({
   unlockedRecords,
   weekStatus,
 }: SaveDayButtonProps) {
-  const lockDay = useLockDay();
+  const saveDay = useSaveDay();
 
   // Extract unique dates from unlocked records (YYYY-MM-DD)
   const uniqueDates = new Set(
@@ -53,12 +53,12 @@ export function SaveDayButton({
 
   return (
     <Button
-      onClick={() => lockDay.mutate(weekId)}
-      disabled={!isDraft || hasNoRecords || lockDay.isPending}
+      onClick={() => saveDay.mutate(weekId)}
+      disabled={!isDraft || hasNoRecords || saveDay.isPending}
       className="w-full sm:w-auto"
     >
       <Lock className="h-4 w-4 mr-1" />
-      {lockDay.isPending ? "Guardando..." : buttonLabel}
+      {saveDay.isPending ? "Guardando..." : buttonLabel}
     </Button>
   );
 }
