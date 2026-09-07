@@ -99,4 +99,20 @@ export class RecordPrismaRepository implements RecordRepository {
     });
     return records.map(RecordMapper.toDomain);
   }
+
+  async lockByWeekAndDate(weekId: string, date: Date, lockedAt: Date): Promise<number> {
+    const result = await this.prisma.workRecord.updateMany({
+      where: { weekId, date, dayLockedAt: null },
+      data: { dayLockedAt: lockedAt },
+    });
+    return result.count;
+  }
+
+  async unlockByWeekAndDate(weekId: string, date: Date): Promise<number> {
+    const result = await this.prisma.workRecord.updateMany({
+      where: { weekId, date },
+      data: { dayLockedAt: null },
+    });
+    return result.count;
+  }
 }

@@ -17,16 +17,17 @@ model Worker {
 }
 
 model WorkRecord {
-  id          String   @id @default(uuid())
-  workerId    String
-  worker      Worker   @relation(fields: [workerId], references: [id], onDelete: Restrict)
-  date        DateTime @db.Date
-  hours       Float
-  hourlyRate  Float
-  description String?
-  weekId      String
-  week        Week     @relation(fields: [weekId], references: [id], onDelete: Cascade)
-  createdAt   DateTime @default(now())
+  id           String    @id @default(uuid())
+  workerId     String
+  worker       Worker    @relation(fields: [workerId], references: [id], onDelete: Restrict)
+  date         DateTime  @db.Date
+  hours        Float
+  hourlyRate   Float
+  description  String?
+  weekId       String
+  week         Week      @relation(fields: [weekId], references: [id], onDelete: Cascade)
+  dayLockedAt  DateTime?
+  createdAt    DateTime  @default(now())
 
   @@index([weekId])
   @@index([workerId])
