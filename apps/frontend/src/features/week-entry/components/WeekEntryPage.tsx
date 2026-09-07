@@ -22,6 +22,7 @@ import type { CreateRecordInput, Week, WorkRecord } from "@/shared/types";
 import { RecordForm } from "./RecordForm";
 import { RecordList } from "./RecordList";
 import { WeekPreview } from "./WeekPreview";
+import { Alert, AlertDescription } from "@/shared/components/ui/alert";
 import { ArrowLeft } from "lucide-react";
 
 type Step = "entry" | "preview";
@@ -206,50 +207,58 @@ export function WeekEntryPage() {
         </div>
       </div>
 
-      <div className="space-y-2">
-        <Label>Seleccionar semana</Label>
-        <Select value={activeWeekId} onValueChange={handleWeekChange}>
-          <SelectTrigger className="w-full">
-            <SelectValue placeholder="Selecciona una semana" />
-          </SelectTrigger>
-          <SelectContent>
-            {available.map((w) => (
-              <SelectItem key={w.id} value={w.id}>
-                {w.label} {w.status === "draft" ? "(borrador)" : ""}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <div className="space-y-2 mb-4">
+            <Label>Seleccionar semana</Label>
+            <Select value={activeWeekId} onValueChange={handleWeekChange}>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Selecciona una semana" />
+              </SelectTrigger>
+              <SelectContent>
+                {available.map((w) => (
+                  <SelectItem key={w.id} value={w.id}>
+                    {w.label} {w.status === "draft" ? "(borrador)" : ""}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {week && (
+            <p className="text-xs text-muted-foreground mb-4">
+              {isAlreadySaved
+                ? `Editando: ${week.label}`
+                : `Nueva semana: ${week.label}`}
+            </p>
+          )}
+
+          <RecordForm
+            weekStart={week?.startDate || ""}
+            weekEnd={week?.endDate || ""}
+            workers={availableWorkers}
+            onSubmit={handleAddRecord}
+            isSubmitting={addRecord.isPending}
+          />
+
+          {addRecord.error && (
+            <Alert variant="destructive" className="mt-2">
+              <AlertDescription className="text-sm">
+                {(addRecord.error as Error)?.message || "Error al agregar registro"}
+              </AlertDescription>
+            </Alert>
+          )}
+        </div>
+
+        <div className="md:max-h-[calc(100vh-12rem)] md:overflow-y-auto md:pr-2">
+          <RecordList
+            records={records}
+            onDelete={handleDeleteRecord}
+            isDeleting={deleteRecord.isPending}
+            readOnlyWorkerIds={isEditing ? paidWorkerIds : undefined}
+          />
+        </div>
       </div>
-
-      {week && (
-        <p className="text-xs text-muted-foreground">
-          {isAlreadySaved
-            ? `Editando: ${week.label}`
-            : `Nueva semana: ${week.label}`}
-        </p>
-      )}
-
-      <RecordForm
-        weekStart={week?.startDate || ""}
-        weekEnd={week?.endDate || ""}
-        workers={availableWorkers}
-        onSubmit={handleAddRecord}
-        isSubmitting={addRecord.isPending}
-      />
-
-      {addRecord.error && (
-        <p className="text-sm text-destructive">
-          {(addRecord.error as Error)?.message || "Error al agregar registro"}
-        </p>
-      )}
-
-      <RecordList
-        records={records}
-        onDelete={handleDeleteRecord}
-        isDeleting={deleteRecord.isPending}
-        readOnlyWorkerIds={isEditing ? paidWorkerIds : undefined}
-      />
 
       <div className="flex justify-end border-t pt-4">
         <Button onClick={handlePreview} disabled={records.length === 0}>
