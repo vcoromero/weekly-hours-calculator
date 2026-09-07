@@ -84,6 +84,7 @@ export function RecordForm({
           <Input
             id="date"
             type="date"
+            className="h-10"
             {...register("date")}
           />
           {errors.date && (
@@ -99,6 +100,7 @@ export function RecordForm({
             step="0.5"
             min="0"
             placeholder="8"
+            className="h-10"
             {...register("hours")}
           />
           {errors.hours && (
@@ -114,6 +116,7 @@ export function RecordForm({
             step="0.01"
             min="0"
             placeholder="15"
+            className="h-10"
             {...register("hourlyRate")}
           />
           {errors.hourlyRate && (
@@ -129,6 +132,7 @@ export function RecordForm({
         <Input
           id="description"
           placeholder="Ej. Turno mañana"
+          className="h-10"
           {...register("description")}
         />
       </div>
