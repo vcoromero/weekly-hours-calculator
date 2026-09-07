@@ -22,6 +22,8 @@ import type { CreateRecordInput, Week, WorkRecord } from "@/shared/types";
 import { RecordForm } from "./RecordForm";
 import { RecordList } from "./RecordList";
 import { WeekPreview } from "./WeekPreview";
+import { SaveDayButton } from "./SaveDayButton";
+import { LockedDaysSection } from "./LockedDaysSection";
 import { Alert, AlertDescription } from "@/shared/components/ui/alert";
 import { ArrowLeft } from "lucide-react";
 
@@ -53,6 +55,10 @@ export function WeekEntryPage() {
   const isLoading = currentLoading || weeksLoading || activeWeekLoading;
 
   const records: WorkRecord[] = existingRecords || [];
+
+  // Split records into unlocked (editable) and locked (read-only)
+  const unlockedRecords = records.filter((r) => !r.dayLockedAt);
+  const lockedRecords = records.filter((r) => !!r.dayLockedAt);
 
   const isEditing = !!urlWeekId;
   const paidWorkerIds = new Set(week?.payments?.map((p) => p.workerId) || []);
@@ -92,10 +98,10 @@ export function WeekEntryPage() {
   );
 
   const handlePreview = async () => {
-    if (!activeWeekId || !existingRecords || existingRecords.length === 0) return;
+    if (!activeWeekId || unlockedRecords.length === 0) return;
     setSaveError(null);
 
-    const editableRecords = existingRecords.filter((r) => !paidWorkerIds.has(r.workerId));
+    const editableRecords = unlockedRecords.filter((r) => !paidWorkerIds.has(r.workerId));
 
     if (editableRecords.length === 0) {
       setSaveError("No hay registros editables: todos los trabajadores de esta semana ya fueron pagados.");
@@ -252,19 +258,30 @@ export function WeekEntryPage() {
 
         <div className="md:max-h-[calc(100vh-12rem)] md:overflow-y-auto md:pr-2">
           <RecordList
-            records={records}
+            records={unlockedRecords}
             onDelete={handleDeleteRecord}
             isDeleting={deleteRecord.isPending}
             readOnlyWorkerIds={isEditing ? paidWorkerIds : undefined}
+            headerAction={
+              week ? (
+                <SaveDayButton
+                  weekId={activeWeekId}
+                  unlockedRecords={unlockedRecords}
+                  weekStatus={week.status}
+                />
+              ) : undefined
+            }
           />
         </div>
       </div>
 
       <div className="flex justify-end border-t pt-4">
-        <Button onClick={handlePreview} disabled={records.length === 0}>
+        <Button onClick={handlePreview} disabled={unlockedRecords.length === 0}>
           Vista previa y guardar
         </Button>
       </div>
+
+      <LockedDaysSection lockedRecords={lockedRecords} />
     </div>
   );
 }
