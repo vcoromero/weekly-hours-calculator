@@ -141,6 +141,23 @@ export function useDeleteWeek() {
   });
 }
 
+export function useLockDay() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (weekId: string) =>
+      api.post<{ lockedDate: string; recordsCount: number }>(
+        `/weeks/${weekId}/lock-day`
+      ),
+    onSuccess: async () => {
+      await Promise.all([
+        qc.invalidateQueries({ queryKey: ["records"] }),
+        qc.invalidateQueries({ queryKey: ["weeks"] }),
+        qc.invalidateQueries({ queryKey: ["workers"] }),
+      ]);
+    },
+  });
+}
+
 export function useGenerateInvoicePDF() {
   return useMutation({
     mutationFn: async ({ workerId, weekIds }: { workerId: string; weekIds: string[] }) => {

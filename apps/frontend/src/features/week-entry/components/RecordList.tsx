@@ -9,9 +9,10 @@ interface RecordListProps {
   onDelete: (recordId: string) => void;
   isDeleting?: boolean;
   readOnlyWorkerIds?: Set<string>;
+  headerAction?: React.ReactNode;
 }
 
-export function RecordList({ records, onDelete, isDeleting, readOnlyWorkerIds }: RecordListProps) {
+export function RecordList({ records, onDelete, isDeleting, readOnlyWorkerIds, headerAction }: RecordListProps) {
   const totalHours = records.reduce((sum, r) => sum + r.hours, 0);
   const grandTotal = records.reduce((sum, r) => sum + recordTotal(r.hours, r.hourlyRate), 0);
 
@@ -36,6 +37,9 @@ export function RecordList({ records, onDelete, isDeleting, readOnlyWorkerIds }:
           {formatHours(totalHours)}h · {records.length} registro{records.length !== 1 ? "s" : ""}
         </p>
       </div>
+
+      {/* Header action (e.g. SaveDayButton) */}
+      {headerAction && <div className="py-3">{headerAction}</div>}
 
       {/* Date groups */}
       {dateGroups.map((group) => (

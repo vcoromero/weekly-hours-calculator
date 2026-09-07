@@ -72,6 +72,7 @@ export function useWeekRecords(weekId: string) {
         hourlyRate: number;
         total: number;
         description: string | null;
+        dayLockedAt: string | null;
       }>>(`/records/week/${weekId}`),
     enabled: !!weekId,
     staleTime: 10_000,

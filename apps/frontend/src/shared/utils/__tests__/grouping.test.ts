@@ -9,7 +9,7 @@ describe("groupRecordsByDate", () => {
 
   it("single record returns 1 group with correct dayTotal", () => {
     const records: WorkRecord[] = [
-      { id: "1", workerId: "w1", workerName: "Alice", date: "2026-05-25", hours: 8, hourlyRate: 25, total: 200 },
+      { id: "1", workerId: "w1", workerName: "Alice", date: "2026-05-25", hours: 8, hourlyRate: 25, total: 200, dayLockedAt: null },
     ];
     const result = groupRecordsByDate(records);
     expect(result).toHaveLength(1);
@@ -20,8 +20,8 @@ describe("groupRecordsByDate", () => {
 
   it("multiple records same date returns 1 group, dayTotal is sum", () => {
     const records: WorkRecord[] = [
-      { id: "1", workerId: "w1", workerName: "Alice", date: "2026-05-25", hours: 4, hourlyRate: 20, total: 80 },
-      { id: "2", workerId: "w2", workerName: "Bob", date: "2026-05-25", hours: 6, hourlyRate: 30, total: 180 },
+      { id: "1", workerId: "w1", workerName: "Alice", date: "2026-05-25", hours: 4, hourlyRate: 20, total: 80, dayLockedAt: null },
+      { id: "2", workerId: "w2", workerName: "Bob", date: "2026-05-25", hours: 6, hourlyRate: 30, total: 180, dayLockedAt: null },
     ];
     const result = groupRecordsByDate(records);
     expect(result).toHaveLength(1);
@@ -30,9 +30,9 @@ describe("groupRecordsByDate", () => {
 
   it("multiple dates returns correctly grouped and sorted", () => {
     const records: WorkRecord[] = [
-      { id: "1", workerId: "w1", workerName: "Alice", date: "2026-05-27", hours: 8, hourlyRate: 20, total: 160 },
-      { id: "2", workerId: "w1", workerName: "Alice", date: "2026-05-25", hours: 8, hourlyRate: 20, total: 160 },
-      { id: "3", workerId: "w2", workerName: "Bob", date: "2026-05-26", hours: 8, hourlyRate: 25, total: 200 },
+      { id: "1", workerId: "w1", workerName: "Alice", date: "2026-05-27", hours: 8, hourlyRate: 20, total: 160, dayLockedAt: null },
+      { id: "2", workerId: "w1", workerName: "Alice", date: "2026-05-25", hours: 8, hourlyRate: 20, total: 160, dayLockedAt: null },
+      { id: "3", workerId: "w2", workerName: "Bob", date: "2026-05-26", hours: 8, hourlyRate: 25, total: 200, dayLockedAt: null },
     ];
     const result = groupRecordsByDate(records);
     expect(result).toHaveLength(3);
@@ -43,8 +43,8 @@ describe("groupRecordsByDate", () => {
 
   it("unsorted dates are output sorted by date ascending", () => {
     const records: WorkRecord[] = [
-      { id: "1", workerId: "w1", workerName: "Alice", date: "2026-05-30", hours: 8, hourlyRate: 20, total: 160 },
-      { id: "2", workerId: "w1", workerName: "Alice", date: "2026-05-25", hours: 8, hourlyRate: 20, total: 160 },
+      { id: "1", workerId: "w1", workerName: "Alice", date: "2026-05-30", hours: 8, hourlyRate: 20, total: 160, dayLockedAt: null },
+      { id: "2", workerId: "w1", workerName: "Alice", date: "2026-05-25", hours: 8, hourlyRate: 20, total: 160, dayLockedAt: null },
     ];
     const result = groupRecordsByDate(records);
     expect(result[0].date).toBe("2026-05-25");
@@ -53,9 +53,9 @@ describe("groupRecordsByDate", () => {
 
   it("dates with mixed order produces stable grouping", () => {
     const records: WorkRecord[] = [
-      { id: "1", workerId: "w1", workerName: "Alice", date: "2026-05-25", hours: 8, hourlyRate: 20, total: 160 },
-      { id: "2", workerId: "w1", workerName: "Alice", date: "2026-05-25", hours: 8, hourlyRate: 20, total: 160 },
-      { id: "3", workerId: "w2", workerName: "Bob", date: "2026-05-26", hours: 8, hourlyRate: 20, total: 160 },
+      { id: "1", workerId: "w1", workerName: "Alice", date: "2026-05-25", hours: 8, hourlyRate: 20, total: 160, dayLockedAt: null },
+      { id: "2", workerId: "w1", workerName: "Alice", date: "2026-05-25", hours: 8, hourlyRate: 20, total: 160, dayLockedAt: null },
+      { id: "3", workerId: "w2", workerName: "Bob", date: "2026-05-26", hours: 8, hourlyRate: 20, total: 160, dayLockedAt: null },
     ];
     const result = groupRecordsByDate(records);
     expect(result).toHaveLength(2);
@@ -77,7 +77,7 @@ describe("groupByWorker", () => {
       startDate: "2026-05-25",
       endDate: "2026-05-31",
       status: "draft" as const,
-      records: [{ id: "r1", workerId: "alice", workerName: "Alice", date: "2026-05-25", hours: 8, hourlyRate: 25 }],
+      records: [{ id: "r1", workerId: "alice", workerName: "Alice", date: "2026-05-25", hours: 8, hourlyRate: 25, dayLockedAt: null }],
       createdAt: "2026-05-25",
     };
     const result = groupByWorker(week);
@@ -95,8 +95,8 @@ describe("groupByWorker", () => {
       endDate: "2026-05-31",
       status: "draft" as const,
       records: [
-        { id: "r1", workerId: "alice", workerName: "Alice", date: "2026-05-25", hours: 4, hourlyRate: 20, total: 80 },
-        { id: "r2", workerId: "alice", workerName: "Alice", date: "2026-05-26", hours: 8, hourlyRate: 20, total: 160 },
+        { id: "r1", workerId: "alice", workerName: "Alice", date: "2026-05-25", hours: 4, hourlyRate: 20, total: 80, dayLockedAt: null },
+        { id: "r2", workerId: "alice", workerName: "Alice", date: "2026-05-26", hours: 8, hourlyRate: 20, total: 160, dayLockedAt: null },
       ],
       createdAt: "2026-05-25",
     };
@@ -115,8 +115,8 @@ describe("groupByWorker", () => {
       endDate: "2026-05-31",
       status: "draft" as const,
       records: [
-        { id: "r1", workerId: "alice", workerName: "Alice", date: "2026-05-25", hours: 8, hourlyRate: 25, total: 200 },
-        { id: "r2", workerId: "bob", workerName: "Bob", date: "2026-05-25", hours: 6, hourlyRate: 30, total: 180 },
+        { id: "r1", workerId: "alice", workerName: "Alice", date: "2026-05-25", hours: 8, hourlyRate: 25, total: 200, dayLockedAt: null },
+        { id: "r2", workerId: "bob", workerName: "Bob", date: "2026-05-25", hours: 6, hourlyRate: 30, total: 180, dayLockedAt: null },
       ],
       createdAt: "2026-05-25",
     };
@@ -132,7 +132,7 @@ describe("groupByWorker", () => {
       endDate: "2026-05-31",
       status: "draft" as const,
       records: [
-        { id: "r1", workerId: "alice", workerName: "Alice", date: "2026-05-25", hours: 8, hourlyRate: 25, total: 210 },
+        { id: "r1", workerId: "alice", workerName: "Alice", date: "2026-05-25", hours: 8, hourlyRate: 25, total: 210, dayLockedAt: null },
       ],
       createdAt: "2026-05-25",
     };
@@ -148,7 +148,7 @@ describe("groupByWorker", () => {
       endDate: "2026-05-31",
       status: "draft" as const,
       records: [
-        { id: "r1", workerId: "alice", workerName: "Alice", date: "2026-05-25", hours: 8, hourlyRate: 25, total: 0 },
+        { id: "r1", workerId: "alice", workerName: "Alice", date: "2026-05-26", hours: 8, hourlyRate: 25, total: 0, dayLockedAt: null },
       ],
       createdAt: "2026-05-25",
     };
