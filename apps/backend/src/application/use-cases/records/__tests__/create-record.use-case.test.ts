@@ -28,7 +28,7 @@ function makeRecord(overrides?: Partial<WorkRecord>): WorkRecord {
     hourlyRate: 25,
     description: "Cleaning",
     weekId: "week-1",
-    dayLockedAt: null,
+    daySavedAt: null,
     createdAt: new Date("2026-06-02"),
     ...overrides,
   };
@@ -51,8 +51,8 @@ describe("CreateRecordUseCase", () => {
       deleteByWeek: async () => {},
       createMany: async () => {},
       findByWeekSimple: async () => [],
-      lockByWeekAndDate: async () => 0,
-      unlockByWeekAndDate: async () => 0,
+      markDaySaved: async () => 0,
+      unmarkDaySaved: async () => 0,
     };
 
     weekRepo = {
@@ -93,7 +93,7 @@ describe("CreateRecordUseCase", () => {
 
   it("creates a record when existing unlocked records have the same date", async () => {
     recordRepo.findByWeekSimple = async () => [
-      makeRecord({ id: "existing", date: new Date("2026-06-02"), dayLockedAt: null }),
+      makeRecord({ id: "existing", date: new Date("2026-06-02"), daySavedAt: null }),
     ];
 
     const result = await useCase.execute({
@@ -109,7 +109,7 @@ describe("CreateRecordUseCase", () => {
 
   it("throws when adding a record with a different date than existing unlocked records", async () => {
     recordRepo.findByWeekSimple = async () => [
-      makeRecord({ id: "existing", date: new Date("2026-06-01"), dayLockedAt: null }),
+      makeRecord({ id: "existing", date: new Date("2026-06-01"), daySavedAt: null }),
     ];
 
     await expect(
@@ -123,9 +123,9 @@ describe("CreateRecordUseCase", () => {
     ).rejects.toThrow(RecordError);
   });
 
-  it("allows adding a record with a different date when existing records are locked", async () => {
+  it("allows adding a record with a different date when existing records are saved", async () => {
     recordRepo.findByWeekSimple = async () => [
-      makeRecord({ id: "existing", date: new Date("2026-06-01"), dayLockedAt: new Date("2026-06-01T10:00:00Z") }),
+      makeRecord({ id: "existing", date: new Date("2026-06-01"), daySavedAt: new Date("2026-06-01T10:00:00Z") }),
     ];
 
     const result = await useCase.execute({

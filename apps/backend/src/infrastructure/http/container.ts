@@ -43,7 +43,7 @@ import {
   UpdateWeekUseCase,
   GetWeekDetailByWorkerUseCase,
   DeleteWeekUseCase,
-  LockDayUseCase,
+  SaveDayUseCase,
 } from "../../application/use-cases/weeks/index.js";
 
 import { GenerateInvoicePdfUseCase } from "../../application/use-cases/invoices/generate-invoice-pdf.use-case.js";
@@ -98,7 +98,7 @@ const getWeekDetailUseCase = new GetWeekDetailUseCase(weekRepo, recordRepo, week
 const updateWeekUseCase = new UpdateWeekUseCase(weekRepo, recordRepo, paymentRepo);
 const getWeekDetailByWorkerUseCase = new GetWeekDetailByWorkerUseCase(weekRepo, recordRepo, weekCalc, totalsCalc, paymentRepo);
 const deleteWeekUseCase = new DeleteWeekUseCase(weekRepo, paymentRepo);
-const lockDayUseCase = new LockDayUseCase(weekRepo, recordRepo);
+const saveDayUseCase = new SaveDayUseCase(weekRepo, recordRepo);
 
 // Invoice use cases
 const generateInvoicePdfUseCase = new GenerateInvoicePdfUseCase(
@@ -137,7 +137,7 @@ export const weeksController = createWeeksController({
   updateWeek: updateWeekUseCase,
   getWeekDetailByWorker: getWeekDetailByWorkerUseCase,
   deleteWeek: deleteWeekUseCase,
-  lockDay: lockDayUseCase,
+  saveDay: saveDayUseCase,
 });
 export const invoiceController = createInvoiceController({
   generateInvoicePdf: generateInvoicePdfUseCase,

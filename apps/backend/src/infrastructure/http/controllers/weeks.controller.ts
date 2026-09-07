@@ -8,7 +8,7 @@ import type { GetWeekDetailUseCase } from "../../../application/use-cases/weeks/
 import type { UpdateWeekUseCase } from "../../../application/use-cases/weeks/update-week.use-case.js";
 import type { GetWeekDetailByWorkerUseCase } from "../../../application/use-cases/weeks/get-week-detail-by-worker.use-case.js";
 import type { DeleteWeekUseCase } from "../../../application/use-cases/weeks/delete-week.use-case.js";
-import type { LockDayUseCase } from "../../../application/use-cases/weeks/lock-day.use-case.js";
+import type { SaveDayUseCase } from "../../../application/use-cases/weeks/save-day.use-case.js";
 
 interface WeeksControllerDeps {
   getCurrentWeek: GetCurrentWeekUseCase;
@@ -20,7 +20,7 @@ interface WeeksControllerDeps {
   updateWeek: UpdateWeekUseCase;
   getWeekDetailByWorker: GetWeekDetailByWorkerUseCase;
   deleteWeek: DeleteWeekUseCase;
-  lockDay: LockDayUseCase;
+  saveDay: SaveDayUseCase;
 }
 
 export function createWeeksController(deps: WeeksControllerDeps) {
@@ -114,9 +114,9 @@ export function createWeeksController(deps: WeeksControllerDeps) {
       }
     },
 
-    async lockDay(req: Request, res: Response, next: NextFunction) {
+    async saveDay(req: Request, res: Response, next: NextFunction) {
       try {
-        const result = await deps.lockDay.execute(req.params.weekId as string);
+        const result = await deps.saveDay.execute(req.params.weekId as string);
         res.json(result);
       } catch (err) {
         next(err);

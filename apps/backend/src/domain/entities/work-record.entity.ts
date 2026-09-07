@@ -6,7 +6,7 @@ export interface WorkRecord {
   hourlyRate: number;
   description: string | null;
   weekId: string;
-  dayLockedAt: Date | null;
+  daySavedAt: Date | null;
   createdAt: Date;
 }
 

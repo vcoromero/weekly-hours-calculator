@@ -100,18 +100,18 @@ export class RecordPrismaRepository implements RecordRepository {
     return records.map(RecordMapper.toDomain);
   }
 
-  async lockByWeekAndDate(weekId: string, date: Date, lockedAt: Date): Promise<number> {
+  async markDaySaved(weekId: string, date: Date, savedAt: Date): Promise<number> {
     const result = await this.prisma.workRecord.updateMany({
-      where: { weekId, date, dayLockedAt: null },
-      data: { dayLockedAt: lockedAt },
+      where: { weekId, date, daySavedAt: null },
+      data: { daySavedAt: savedAt },
     });
     return result.count;
   }
 
-  async unlockByWeekAndDate(weekId: string, date: Date): Promise<number> {
+  async unmarkDaySaved(weekId: string, date: Date): Promise<number> {
     const result = await this.prisma.workRecord.updateMany({
       where: { weekId, date },
-      data: { dayLockedAt: null },
+      data: { daySavedAt: null },
     });
     return result.count;
   }

@@ -25,7 +25,7 @@ export interface WorkRecord {
   hourlyRate: number;
   description?: string | null;
   total?: number;
-  dayLockedAt: string | null;
+  daySavedAt: string | null;
 }
 
 export interface Week {

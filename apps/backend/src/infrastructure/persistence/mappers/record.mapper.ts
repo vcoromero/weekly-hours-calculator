@@ -9,7 +9,7 @@ interface PrismaRecordSimple {
   hourlyRate: number;
   description: string | null;
   weekId: string;
-  dayLockedAt: Date | null;
+  daySavedAt: Date | null;
   createdAt: Date;
 }
 
@@ -34,7 +34,7 @@ export class RecordMapper {
       hourlyRate: prismaRecord.hourlyRate,
       description: prismaRecord.description,
       weekId: prismaRecord.weekId,
-      dayLockedAt: prismaRecord.dayLockedAt,
+      daySavedAt: prismaRecord.daySavedAt,
       createdAt: prismaRecord.createdAt,
     };
   }
@@ -48,7 +48,7 @@ export class RecordMapper {
       hourlyRate: prismaRecord.hourlyRate,
       description: prismaRecord.description,
       weekId: prismaRecord.weekId,
-      dayLockedAt: prismaRecord.dayLockedAt,
+      daySavedAt: prismaRecord.daySavedAt,
       createdAt: prismaRecord.createdAt,
       worker: prismaRecord.worker,
       week: prismaRecord.week,

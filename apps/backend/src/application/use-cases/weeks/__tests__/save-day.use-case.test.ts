@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from "vitest";
-import { LockDayUseCase } from "../lock-day.use-case";
+import { SaveDayUseCase } from "../save-day.use-case";
 import type { WeekRepository } from "../../../../domain/ports/week.repository";
 import type { RecordRepository } from "../../../../domain/ports/record.repository";
 import type { Week } from "../../../../domain/entities/week.entity";
@@ -28,16 +28,16 @@ function makeRecord(overrides?: Partial<WorkRecord>): WorkRecord {
     hourlyRate: 25,
     description: "Cleaning",
     weekId: "week-1",
-    dayLockedAt: null,
+    daySavedAt: null,
     createdAt: new Date("2026-06-02"),
     ...overrides,
   };
 }
 
-describe("LockDayUseCase", () => {
+describe("SaveDayUseCase", () => {
   let weekRepo: WeekRepository;
   let recordRepo: RecordRepository;
-  let useCase: LockDayUseCase;
+  let useCase: SaveDayUseCase;
 
   beforeEach(() => {
     weekRepo = {
@@ -61,25 +61,25 @@ describe("LockDayUseCase", () => {
       deleteByWeek: async () => {},
       createMany: async () => {},
       findByWeekSimple: async () => [],
-      lockByWeekAndDate: async () => 0,
-      unlockByWeekAndDate: async () => 0,
+      markDaySaved: async () => 0,
+      unmarkDaySaved: async () => 0,
     };
 
-    useCase = new LockDayUseCase(weekRepo, recordRepo);
+    useCase = new SaveDayUseCase(weekRepo, recordRepo);
   });
 
-  it("locks all unlocked records on the same date", async () => {
+  it("saves all unsaved records on the same date", async () => {
     weekRepo.findById = async () => makeWeek();
     recordRepo.findByWeekSimple = async () => [
-      makeRecord({ id: "r1", dayLockedAt: null }),
-      makeRecord({ id: "r2", dayLockedAt: null }),
-      makeRecord({ id: "r3", dayLockedAt: null }),
+      makeRecord({ id: "r1", daySavedAt: null }),
+      makeRecord({ id: "r2", daySavedAt: null }),
+      makeRecord({ id: "r3", daySavedAt: null }),
     ];
-    recordRepo.lockByWeekAndDate = async () => 3;
+    recordRepo.markDaySaved = async () => 3;
 
     const result = await useCase.execute("week-1");
 
-    expect(result.lockedDate).toBe("2026-06-02");
+    expect(result.savedDate).toBe("2026-06-02");
     expect(result.recordsCount).toBe(3);
   });
 
@@ -95,37 +95,37 @@ describe("LockDayUseCase", () => {
     await expect(useCase.execute("week-1")).rejects.toThrow(WeekError);
   });
 
-  it("throws RecordError when no unlocked records exist", async () => {
+  it("throws RecordError when no unsaved records exist", async () => {
     weekRepo.findById = async () => makeWeek();
     recordRepo.findByWeekSimple = async () => [
-      makeRecord({ dayLockedAt: new Date("2026-06-02T10:00:00Z") }),
+      makeRecord({ daySavedAt: new Date("2026-06-02T10:00:00Z") }),
     ];
 
     await expect(useCase.execute("week-1")).rejects.toThrow(RecordError);
   });
 
-  it("throws RecordError when unlocked records span multiple dates", async () => {
+  it("throws RecordError when unsaved records span multiple dates", async () => {
     weekRepo.findById = async () => makeWeek();
     recordRepo.findByWeekSimple = async () => [
-      makeRecord({ id: "r1", date: new Date("2026-06-01"), dayLockedAt: null }),
-      makeRecord({ id: "r2", date: new Date("2026-06-02"), dayLockedAt: null }),
+      makeRecord({ id: "r1", date: new Date("2026-06-01"), daySavedAt: null }),
+      makeRecord({ id: "r2", date: new Date("2026-06-02"), daySavedAt: null }),
     ];
 
     await expect(useCase.execute("week-1")).rejects.toThrow(RecordError);
   });
 
-  it("ignores already locked records when checking dates", async () => {
+  it("ignores already saved records when checking dates", async () => {
     weekRepo.findById = async () => makeWeek();
     recordRepo.findByWeekSimple = async () => [
-      makeRecord({ id: "r1", date: new Date("2026-06-01"), dayLockedAt: new Date("2026-06-01T10:00:00Z") }),
-      makeRecord({ id: "r2", date: new Date("2026-06-02"), dayLockedAt: null }),
-      makeRecord({ id: "r3", date: new Date("2026-06-02"), dayLockedAt: null }),
+      makeRecord({ id: "r1", date: new Date("2026-06-01"), daySavedAt: new Date("2026-06-01T10:00:00Z") }),
+      makeRecord({ id: "r2", date: new Date("2026-06-02"), daySavedAt: null }),
+      makeRecord({ id: "r3", date: new Date("2026-06-02"), daySavedAt: null }),
     ];
-    recordRepo.lockByWeekAndDate = async () => 2;
+    recordRepo.markDaySaved = async () => 2;
 
     const result = await useCase.execute("week-1");
 
-    expect(result.lockedDate).toBe("2026-06-02");
+    expect(result.savedDate).toBe("2026-06-02");
     expect(result.recordsCount).toBe(2);
   });
 });

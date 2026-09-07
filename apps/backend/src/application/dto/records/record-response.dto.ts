@@ -7,5 +7,5 @@ export interface RecordResponseDto {
   hourlyRate: number;
   total: number;
   description: string | null;
-  dayLockedAt: string | null;
+  daySavedAt: string | null;
 }

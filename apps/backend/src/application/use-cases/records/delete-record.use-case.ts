@@ -15,10 +15,6 @@ export class DeleteRecordUseCase {
       throw new RecordError("Record not found");
     }
 
-    if (record.dayLockedAt !== null) {
-      throw new RecordError("Cannot delete a locked record");
-    }
-
     const payments = await this.paymentRepo.findByWorkerAndWeeks(
       record.workerId,
       [record.weekId],

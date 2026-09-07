@@ -10,7 +10,7 @@ describe("RecordMapper", () => {
     hourlyRate: 25,
     description: "Cleaning",
     weekId: "week-1",
-    dayLockedAt: null,
+    daySavedAt: null,
     createdAt: new Date("2026-01-15"),
   };
 
@@ -56,16 +56,16 @@ describe("RecordMapper", () => {
       expect(result.weekId).toBe("week-1");
     });
 
-    it("maps null dayLockedAt", () => {
+    it("maps null daySavedAt", () => {
       const result = RecordMapper.toDomain(baseRecord);
-      expect(result.dayLockedAt).toBeNull();
+      expect(result.daySavedAt).toBeNull();
     });
 
-    it("maps dayLockedAt as Date object", () => {
-      const lockedAt = new Date("2026-01-15T12:00:00Z");
-      const record = { ...baseRecord, dayLockedAt: lockedAt };
+    it("maps daySavedAt as Date object", () => {
+      const savedAt = new Date("2026-01-15T12:00:00Z");
+      const record = { ...baseRecord, daySavedAt: savedAt };
       const result = RecordMapper.toDomain(record);
-      expect(result.dayLockedAt).toBe(lockedAt);
+      expect(result.daySavedAt).toBe(savedAt);
     });
 
     it("maps createdAt", () => {

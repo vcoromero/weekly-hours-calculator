@@ -16,7 +16,7 @@ function makeRecordWithWorker(overrides?: Partial<RecordWithWorker>): RecordWith
     hourlyRate: 25,
     description: "Cleaning",
     weekId: "week-1",
-    dayLockedAt: null,
+    daySavedAt: null,
     createdAt: new Date("2026-06-02"),
     worker: { id: "worker-1", name: "Alice" },
     week: { id: "week-1", label: "W23", startDate: new Date("2026-05-30"), endDate: new Date("2026-06-05"), status: "draft" },
@@ -40,8 +40,8 @@ describe("DeleteRecordUseCase", () => {
       deleteByWeek: async () => {},
       createMany: async () => {},
       findByWeekSimple: async () => [],
-      lockByWeekAndDate: async () => 0,
-      unlockByWeekAndDate: async () => 0,
+      markDaySaved: async () => 0,
+      unmarkDaySaved: async () => 0,
     };
 
     paymentRepo = {
@@ -52,8 +52,15 @@ describe("DeleteRecordUseCase", () => {
     useCase = new DeleteRecordUseCase(recordRepo, paymentRepo);
   });
 
-  it("deletes an unlocked record successfully", async () => {
+  it("deletes a record successfully", async () => {
     recordRepo.findById = async () => makeRecordWithWorker();
+
+    await expect(useCase.execute("record-1")).resolves.toBeUndefined();
+  });
+
+  it("deletes a saved record successfully (no lock guard)", async () => {
+    recordRepo.findById = async () =>
+      makeRecordWithWorker({ daySavedAt: new Date("2026-06-02T10:00:00Z") });
 
     await expect(useCase.execute("record-1")).resolves.toBeUndefined();
   });
@@ -62,13 +69,6 @@ describe("DeleteRecordUseCase", () => {
     recordRepo.findById = async () => null;
 
     await expect(useCase.execute("nonexistent")).rejects.toThrow(RecordError);
-  });
-
-  it("throws RecordError when record is locked", async () => {
-    recordRepo.findById = async () =>
-      makeRecordWithWorker({ dayLockedAt: new Date("2026-06-02T10:00:00Z") });
-
-    await expect(useCase.execute("record-1")).rejects.toThrow(RecordError);
   });
 
   it("throws PaymentError when record has associated payments", async () => {

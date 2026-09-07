@@ -141,12 +141,12 @@ export function useDeleteWeek() {
   });
 }
 
-export function useLockDay() {
+export function useSaveDay() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (weekId: string) =>
-      api.post<{ lockedDate: string; recordsCount: number }>(
-        `/weeks/${weekId}/lock-day`
+      api.post<{ savedDate: string; recordsCount: number }>(
+        `/weeks/${weekId}/save-day`
       ),
     onSuccess: async () => {
       await Promise.all([
