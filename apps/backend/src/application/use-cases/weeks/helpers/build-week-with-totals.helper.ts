@@ -26,6 +26,7 @@ export class BuildWeekWithTotalsHelper {
         hourlyRate: r.hourlyRate,
         total: totalsCalc.recordTotal(r.hours, r.hourlyRate),
         description: r.description,
+        daySavedAt: r.daySavedAt?.toISOString() ?? null,
       };
     });
 

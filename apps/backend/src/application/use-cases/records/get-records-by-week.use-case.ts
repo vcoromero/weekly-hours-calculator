@@ -22,6 +22,7 @@ export class GetRecordsByWeekUseCase {
       hourlyRate: r.hourlyRate,
       total: this.calculator.recordTotal(r.hours, r.hourlyRate),
       description: r.description,
+      daySavedAt: r.daySavedAt ? r.daySavedAt.toISOString() : null,
     }));
   }
 }

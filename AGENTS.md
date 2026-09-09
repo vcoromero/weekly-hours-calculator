@@ -19,35 +19,34 @@
 The source of truth for this project is at:
 
 ```
-~/Documents/dev/dev-notes/Projects/weekly-hours-calculator/
+~/Documents/PunkRecords/Projects/weekly-hours-tracker/
 ```
 
 **Read before touching any code:**
-- `06 - Stack & roadmap.md` — current project progress, what's done and what's pending
-- `01 - Business rules.md` — domain rules
-- `02 - DB structure.md` — schema design
-- `03 - API spec.md` — backend endpoints
-- `04 - Frontend spec.md` — UI pages and flows
-- `05 - Backend spec.md` — backend architecture
-- `10 - Bitácora.md` 
-
-Hexagonal architecture guidance: `~/Documents/dev/dev-notes/Areas/Architectures/01 - Hexagonal architecture.md`
+- `01 - Overview/06 - Stack and roadmap.md` — current project progress, what's done and what's pending
+- `01 - Overview/01 - Business rules.md` — domain rules
+- `01 - Overview/02 - DB structure.md` — schema design
+- `02 - API specification/01 - API specification.md` — backend endpoints
+- `03 - Frontend specification/01 - Frontend specification.md` — UI pages and flows
+- `04 - Backend specification/01 - Backend specification.md` — backend architecture
+- `01 - Overview/10 - Log.md` — project changelog/log
+ 
+Hexagonal architecture guidance: `~/Documents/PunkRecords/Areas/Architectures/01 - Hexagonal architecture.md`
 
 ## 📝 Session Log (MANDATORY)
 
-At the **start** of every session, read `10 - Bitácora.md` in the dev-notes
-(`Projects/weekly-hours-calculator/`) to know the current project state and latest instructions (if it does not exist, create it).
+At the **start** of every session, read `01 - Overview/10 - Log.md` in (`~/Documents/PunkRecords/Projects/weekly-hours-tracker/`) to know the current project state and latest instructions.
 
-At the **end** of every session (or after significant progress), update `10 - Bitácora.md` recording:
+At the **end** of every session (or after significant progress), update `01 - Overview/10 - Log.md` recording:
 - Date and summary of what was worked on
 - Instructions received from the user
 - Completed tasks (with checkboxes)
 - Next steps
 
-**Al confirmar cada merge:** actualizar inmediatamente:
-- `10 - Bitácora.md` — nueva entrada con PR completado
-- Documentación relevante del área de trabajo (ej. `15 - Plan de tests unitarios.md` si es fase de tests)
-- Commit + push a dev-notes
+**After confirming each merge:** update immediately:
+- `01 - Overview/10 - Log.md` — new entry with completed PR
+- Relevant documentation for the area (e.g. `07 - Testing/01 - Unit test plan.md` if in testing phase)
+- Commit + push to dev-notes
 
 ## 🏗️ Developer Commands
 
@@ -83,7 +82,7 @@ npx shadcn@latest add [component]   # Add component
 
 Every feature or change must follow this order **strictly**:
 
-1. **Read documentation** — Review the dev-notes (`~/Documents/dev/dev-notes/Projects/weekly-hours-calculator/`) to understand current project state.
+1. **Read documentation** — Review (`~/Documents/PunkRecords/Projects/weekly-hours-tracker/`) to understand current project state.
 2. **Assess scope** — Analyze how big the change is, which files/routes it impacts, estimate complexity.
 3. **Decide branch strategy** (MANDATORY):
    - `feature/xxx` → new functionality
@@ -216,13 +215,129 @@ Prisma client is generated at `node_modules/.prisma/client` — never edit direc
 - All API hooks live in `shared/api/queries.ts` (reads) and `mutations.ts` (writes).
 - `useMutation` callbacks **must invalidate** affected query keys. Pattern: invalidate `["workers"]` prefix to bust dashboard/stats/history/week detail caches simultaneously.
 - `staleTime` varies by query (10s–30s). No optimistic updates.
+- Query key convention: `["workers"]`, `["weeks"]`, `["weeks", "current"]`, `["records", weekId]`, `["workers", id, "history"]`, etc. Invalidation by prefix busts all child keys.
+
+### Route guards
+
+All routes except `/login` are wrapped in `ProtectedLayout` (`shared/components/Layout.tsx`), which:
+- Shows a spinner while `isLoading` from `useAuth()` resolves
+- Redirects to `/login` if `isAuthenticated` is false
+- Renders `<Header />` + `<Outlet />` for authenticated users
+
+### Invoice PDF naming
+
+Generated invoice PDFs follow a specific filename convention (see `01 - Overview/10 - Log.md`):
+
+- **Single week**: `{workerName}-week-{number}.pdf` (e.g., `victor_romero-week-18.pdf`)
+- **Multiple weeks**: `{workerName}-weeks-{numbers}.pdf` (e.g., `victor_romero-weeks-19-20.pdf`)
+
+Worker name is lowercased with spaces replaced by underscores. Week numbers are extracted from the week label. The filename is set via `Content-Disposition` header by `invoice.controller.ts` and consumed by the frontend `useGenerateInvoicePDF` mutation.
+
+## 🏛️ Architecture (Hexagonal)
+
+The backend follows hexagonal architecture (ports & adapters). Strict dependency direction: **infrastructure → application → domain** (never reversed).
+
+### Layers
+
+| Layer | Directory | Contains |
+|-------|-----------|----------|
+| **Domain** | `src/domain/` | Entities, value objects, ports (interfaces), domain services (pure logic), domain errors |
+| **Application** | `src/application/` | Use cases (orchestration), DTOs |
+| **Infrastructure** | `src/infrastructure/` | HTTP (Express app, controllers, middleware, routes), persistence (Prisma repositories + mappers), auth adapter |
+
+### Dependency rules
+
+- `domain/` imports nothing from `application/` or `infrastructure/`
+- `application/` imports only from `domain/`
+- `infrastructure/` imports from both `domain/` and `application/`
+
+### Ports & adapters
+
+Ports (interfaces) live in `src/domain/ports/`, adapters in `src/infrastructure/`:
+
+| Port | Adapter |
+|------|---------|
+| `WorkerRepository` | `WorkerPrismaRepository` |
+| `RecordRepository` | `RecordPrismaRepository` |
+| `WeekRepository` | `WeekPrismaRepository` |
+| `WorkerPaymentRepository` | `WorkerPaymentPrismaRepository` |
+| `AuthPort` | `JwtBcryptAuthAdapter` |
+
+Prisma models are mapped to domain entities via mappers in `src/infrastructure/persistence/mappers/`.
+
+### Request flow
+
+```
+HTTP Request
+  → routes.ts (Express router)
+    → auth.middleware.ts (Bearer token verification)
+      → validate.middleware.ts (Zod body/params validation)
+        → controller (extracts data, delegates to use case)
+          → use case (orchestration)
+            → domain service (pure business logic)
+            → repository port (interface)
+              → Prisma repository (adapter, uses mapper)
+                → PostgreSQL
+          ← use case returns DTO
+        ← controller sends JSON response
+    ← error.handler.ts catches any thrown error
+```
+
+### DI container
+
+Manual wiring in `src/infrastructure/http/container.ts`. Construction order:
+1. Prisma client (`prisma-client.ts`)
+2. Repositories (receive `prisma` instance)
+3. Domain services (`WeekCalculator`, `TotalsCalculator`, `InvoiceService`) — stateless, no deps
+4. Use cases (receive repositories + services)
+5. Controllers (receive use cases)
+6. Middleware (`createAuthMiddleware` receives `VerifyTokenUseCase`)
+
+### Error handling pattern
+
+Domain errors extend `Error` with a `statusCode` property. The `errorHandler` middleware resolves them:
+
+| Error type | HTTP status |
+|------------|-------------|
+| `ZodError` (validation) | 400 |
+| `Prisma.PrismaClientKnownRequestError` (P2002) | 409 |
+| `Prisma.PrismaClientKnownRequestError` (P2003) | 400 |
+| `Prisma.PrismaClientKnownRequestError` (P2025) | 404 |
+| Domain errors with `statusCode` (e.g., `AuthError` → 401) | As defined |
+| Anything else | 500 |
+
+Controllers **do not catch** domain errors — they `throw` and the centralized `errorHandler` formats the response.
+
+## Validation (Zod)
+
+The backend uses Zod in two layers:
+
+### Environment validation
+`apps/backend/src/config/env.ts` defines a Zod schema for all env vars. The app fails fast at startup if any variable is missing or invalid. Variables: `PORT`, `NODE_ENV`, `DATABASE_URL`, `JWT_SECRET`, `JWT_EXPIRES_IN`, `MASTER_EMAIL`, `MASTER_PASSWORD_HASH`, `FRONTEND_URL`.
+
+### Request validation
+Zod schemas are co-located in `apps/backend/src/infrastructure/http/routes.ts` (e.g., `loginSchema`, `createWorkerSchema`, `recordInputSchema`, `invoiceSchema`, etc.). They are applied via middleware:
+- `validateBody(schema)` — parses and replaces `req.body` with validated data; rejects with `400` on failure
+- `validateParams(schema)` — validates URL params (e.g., UUID format); rejects with `400` on failure
+
+### Response shape on validation failure
+Both middleware and the central `errorHandler` return the same shape for Zod errors:
+
+```json
+{
+  "error": "Validation error",
+  "details": [{ "path": ["field"], "message": "..." }]
+}
+```
+
+Status code is always **400**.
 
 ## Database Schema (Prisma)
 
-- `Worker` — id, name (unique), isRegular, records[]
-- `WorkRecord` — id, workerId, date, hours, hourlyRate, description, weekId
-- `Week` — id, label, startDate, endDate, status ("draft" | "saved"), records[]
-- `WorkerPayment` — id, workerId, weekIds[], amount, paidAt
+- `Worker` — id, name (unique), isRegular, createdAt, updatedAt, records[], payments[]
+- `WorkRecord` — id, workerId, date, hours, hourlyRate, description, weekId, createdAt
+- `Week` — id, label, startDate, endDate, status ("draft" | "saved"), createdAt, records[], payments[]
+- `WorkerPayment` — id, workerId, weekId, totalAmount, paidAt (unique constraint on [workerId, weekId])
 
 ## 🧪 Testing
 
@@ -248,7 +363,11 @@ Framework: **Vitest v3** with `globals: true`.
 | `TotalsCalculator` — 14 tests | `calculations.ts` — 11 tests |
 | | `cn()` — 6 tests |
 
-Consultar `15 - Plan de tests unitarios.md` para el estado completo de coverage y PRs pendientes.
+Consult `07 - Testing/01 - Unit test plan.md` for the full coverage status and pending PRs.
+
+### Coverage thresholds
+
+Target: **80%** on lines, branches, functions, and statements. Currently **disabled** — planned to be activated after PR #16 (see `07 - Testing/06 - PR 14-16 and summary.md`). Coverage exclusions: infrastructure (routes, container, persistence), shadcn/ui, entry points.
 
 ### Commands
 
@@ -260,3 +379,11 @@ npm test -- --filter="TestName" # Single test (vitest --filter pattern)
 ## Authentication
 
 JWT stored in `localStorage` (see `shared/hooks/useAuth.tsx`). Single master user configured entirely via environment variables (`MASTER_EMAIL`, `MASTER_PASSWORD_HASH`). No database user table for auth — the `Worker` entity is unrelated to authentication.
+
+### Auth flow specifics
+- Token stored in `localStorage` under key `auth_token`; user object stored under `auth_user`
+- API client (`shared/api/client.ts`) attaches token via `Authorization: Bearer <token>` header
+- Token expiry configured via `JWT_EXPIRES_IN` env var (default `7d`)
+- `AuthProvider` restores session from `localStorage` on mount (parses `auth_user`, validates token presence)
+- Login: `POST /auth/login` returns `{ token, user }` — both persisted to `localStorage`
+- Logout: removes both `auth_token` and `auth_user` from `localStorage`

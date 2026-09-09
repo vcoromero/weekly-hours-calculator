@@ -8,3 +8,4 @@ export { GetWeekDetailUseCase } from "./get-week-detail.use-case.js";
 export { UpdateWeekUseCase } from "./update-week.use-case.js";
 export { GetWeekDetailByWorkerUseCase } from "./get-week-detail-by-worker.use-case.js";
 export { DeleteWeekUseCase } from "./delete-week.use-case.js";
+export { SaveDayUseCase } from "./save-day.use-case.js";

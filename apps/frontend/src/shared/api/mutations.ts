@@ -141,6 +141,23 @@ export function useDeleteWeek() {
   });
 }
 
+export function useSaveDay() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (weekId: string) =>
+      api.post<{ savedDate: string; recordsCount: number }>(
+        `/weeks/${weekId}/save-day`
+      ),
+    onSuccess: async () => {
+      await Promise.all([
+        qc.invalidateQueries({ queryKey: ["records"] }),
+        qc.invalidateQueries({ queryKey: ["weeks"] }),
+        qc.invalidateQueries({ queryKey: ["workers"] }),
+      ]);
+    },
+  });
+}
+
 export function useGenerateInvoicePDF() {
   return useMutation({
     mutationFn: async ({ workerId, weekIds }: { workerId: string; weekIds: string[] }) => {

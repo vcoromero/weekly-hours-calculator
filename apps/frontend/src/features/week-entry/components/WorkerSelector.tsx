@@ -58,7 +58,7 @@ export function WorkerSelector({
       <Label>Trabajador</Label>
       <div className="flex gap-2">
         <Select value={value} onValueChange={onChange}>
-          <SelectTrigger className="w-full">
+          <SelectTrigger className="w-full h-10">
             <SelectValue placeholder="Selecciona un trabajador" />
           </SelectTrigger>
           <SelectContent>

@@ -22,6 +22,9 @@ import type { CreateRecordInput, Week, WorkRecord } from "@/shared/types";
 import { RecordForm } from "./RecordForm";
 import { RecordList } from "./RecordList";
 import { WeekPreview } from "./WeekPreview";
+import { SaveDayButton } from "./SaveDayButton";
+import { CapturedDaysSection } from "./CapturedDaysSection";
+import { Alert, AlertDescription } from "@/shared/components/ui/alert";
 import { ArrowLeft } from "lucide-react";
 
 type Step = "entry" | "preview";
@@ -52,6 +55,10 @@ export function WeekEntryPage() {
   const isLoading = currentLoading || weeksLoading || activeWeekLoading;
 
   const records: WorkRecord[] = existingRecords || [];
+
+  // Split records into unsaved (editable) and saved (captured, still editable)
+  const unsavedRecords = records.filter((r) => !r.daySavedAt);
+  const savedRecords = records.filter((r) => !!r.daySavedAt);
 
   const isEditing = !!urlWeekId;
   const paidWorkerIds = new Set(week?.payments?.map((p) => p.workerId) || []);
@@ -91,10 +98,10 @@ export function WeekEntryPage() {
   );
 
   const handlePreview = async () => {
-    if (!activeWeekId || !existingRecords || existingRecords.length === 0) return;
+    if (!activeWeekId || records.length === 0) return;
     setSaveError(null);
 
-    const editableRecords = existingRecords.filter((r) => !paidWorkerIds.has(r.workerId));
+    const editableRecords = records.filter((r) => !paidWorkerIds.has(r.workerId));
 
     if (editableRecords.length === 0) {
       setSaveError("No hay registros editables: todos los trabajadores de esta semana ya fueron pagados.");
@@ -206,56 +213,80 @@ export function WeekEntryPage() {
         </div>
       </div>
 
-      <div className="space-y-2">
-        <Label>Seleccionar semana</Label>
-        <Select value={activeWeekId} onValueChange={handleWeekChange}>
-          <SelectTrigger className="w-full">
-            <SelectValue placeholder="Selecciona una semana" />
-          </SelectTrigger>
-          <SelectContent>
-            {available.map((w) => (
-              <SelectItem key={w.id} value={w.id}>
-                {w.label} {w.status === "draft" ? "(borrador)" : ""}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <div className="space-y-2 mb-4">
+            <Label>Seleccionar semana</Label>
+            <Select value={activeWeekId} onValueChange={handleWeekChange}>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Selecciona una semana" />
+              </SelectTrigger>
+              <SelectContent>
+                {available.map((w) => (
+                  <SelectItem key={w.id} value={w.id}>
+                    {w.label} {w.status === "draft" ? "(borrador)" : ""}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {week && (
+            <p className="text-xs text-muted-foreground mb-4">
+              {isAlreadySaved
+                ? `Editando: ${week.label}`
+                : `Nueva semana: ${week.label}`}
+            </p>
+          )}
+
+          <RecordForm
+            weekStart={week?.startDate || ""}
+            weekEnd={week?.endDate || ""}
+            workers={availableWorkers}
+            onSubmit={handleAddRecord}
+            isSubmitting={addRecord.isPending}
+          />
+
+          {addRecord.error && (
+            <Alert variant="destructive" className="mt-2">
+              <AlertDescription className="text-sm">
+                {(addRecord.error as Error)?.message || "Error al agregar registro"}
+              </AlertDescription>
+            </Alert>
+          )}
+        </div>
+
+        <div className="md:max-h-[calc(100vh-12rem)] md:overflow-y-auto md:pr-2">
+          <RecordList
+            records={unsavedRecords}
+            onDelete={handleDeleteRecord}
+            isDeleting={deleteRecord.isPending}
+            readOnlyWorkerIds={isEditing ? paidWorkerIds : undefined}
+            headerAction={
+              week ? (
+                <SaveDayButton
+                  weekId={activeWeekId}
+                  unlockedRecords={unsavedRecords}
+                  weekStatus={week.status}
+                />
+              ) : undefined
+            }
+          />
+        </div>
       </div>
-
-      {week && (
-        <p className="text-xs text-muted-foreground">
-          {isAlreadySaved
-            ? `Editando: ${week.label}`
-            : `Nueva semana: ${week.label}`}
-        </p>
-      )}
-
-      <RecordForm
-        weekStart={week?.startDate || ""}
-        weekEnd={week?.endDate || ""}
-        workers={availableWorkers}
-        onSubmit={handleAddRecord}
-        isSubmitting={addRecord.isPending}
-      />
-
-      {addRecord.error && (
-        <p className="text-sm text-destructive">
-          {(addRecord.error as Error)?.message || "Error al agregar registro"}
-        </p>
-      )}
-
-      <RecordList
-        records={records}
-        onDelete={handleDeleteRecord}
-        isDeleting={deleteRecord.isPending}
-        readOnlyWorkerIds={isEditing ? paidWorkerIds : undefined}
-      />
 
       <div className="flex justify-end border-t pt-4">
         <Button onClick={handlePreview} disabled={records.length === 0}>
           Vista previa y guardar
         </Button>
       </div>
+
+      <CapturedDaysSection
+        capturedRecords={savedRecords}
+        onDelete={handleDeleteRecord}
+        isDeleting={deleteRecord.isPending}
+        readOnlyWorkerIds={isEditing ? paidWorkerIds : undefined}
+      />
     </div>
   );
 }

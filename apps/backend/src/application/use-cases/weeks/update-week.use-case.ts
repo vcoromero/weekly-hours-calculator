@@ -44,16 +44,19 @@ export class UpdateWeekUseCase {
     }
 
     await this.recordRepo.deleteByWeek(weekId);
+    const savedAt = new Date();
     await this.recordRepo.createMany([
       ...records.map((r) => ({
         ...r,
         weekId,
         description: r.description || undefined,
+        daySavedAt: savedAt,
       })),
       ...preserved.map((r) => ({
         ...r,
         weekId,
         description: r.description || undefined,
+        daySavedAt: savedAt,
       })),
     ]);
 

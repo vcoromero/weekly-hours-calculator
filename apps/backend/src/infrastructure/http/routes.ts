@@ -128,5 +128,6 @@ router.put("/weeks/:id", requireAuth, validateParams(idParamSchema), validateBod
 router.delete("/weeks/:id", requireAuth, validateParams(idParamSchema), weeksController.delete);
 router.post("/weeks/preview", requireAuth, validateBody(previewWeekSchema), weeksController.preview);
 router.post("/weeks/save", requireAuth, validateBody(saveWeekSchema), weeksController.save);
+router.post("/weeks/:weekId/save-day", requireAuth, validateParams(weekIdParamSchema), weeksController.saveDay);
 
 export default router;
