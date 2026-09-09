@@ -10,6 +10,7 @@
     "db:migrate": "nx run backend:db:migrate",
     "db:generate": "nx run backend:db:generate",
     "db:seed": "nx run backend:db:seed",
+    "db:backfill-day-saved-at": "nx run backend:db:backfill-day-saved-at",
     "db:studio": "nx run backend:db:studio",
     "docker:up": "docker compose up -d postgres",
     "docker:down": "docker compose down",

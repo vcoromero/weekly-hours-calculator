@@ -79,7 +79,7 @@ export class RecordPrismaRepository implements RecordRepository {
   }
 
   async createMany(
-    data: Array<CreateRecordInput & { weekId: string }>
+    data: Array<CreateRecordInput & { weekId: string; daySavedAt?: Date }>
   ): Promise<void> {
     await this.prisma.workRecord.createMany({
       data: data.map((r) => ({
@@ -89,6 +89,7 @@ export class RecordPrismaRepository implements RecordRepository {
         hourlyRate: r.hourlyRate,
         description: r.description || null,
         weekId: r.weekId,
+        daySavedAt: r.daySavedAt ?? null,
       })),
     });
   }

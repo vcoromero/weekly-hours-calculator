@@ -17,16 +17,17 @@ export function CapturedDaysSection({ capturedRecords, onDelete, isDeleting, rea
   const dateGroups = groupRecordsByDate(capturedRecords);
 
   return (
-    <div className="space-y-4">
-      <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
+    <div>
+      <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wide mb-4">
         Días capturados
       </h3>
 
-      {dateGroups.map((group) => (
-        <div
-          key={group.date}
-          className="rounded-lg border bg-muted/30 p-3 space-y-2"
-        >
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        {dateGroups.map((group) => (
+          <div
+            key={group.date}
+            className="rounded-lg border bg-muted/30 p-3 space-y-2"
+          >
           {/* Day header */}
           <div className="flex items-center justify-between text-sm">
             <div className="flex items-center gap-2 text-muted-foreground">
@@ -79,7 +80,8 @@ export function CapturedDaysSection({ capturedRecords, onDelete, isDeleting, rea
             );
           })}
         </div>
-      ))}
+        ))}
+      </div>
     </div>
   );
 }
