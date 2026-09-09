@@ -56,6 +56,12 @@
       "options": {
         "script": "db:studio"
       }
+    },
+    "db:backfill-day-saved-at": {
+      "executor": "nx:run-script",
+      "options": {
+        "script": "db:backfill-day-saved-at"
+      }
     }
   }
 }

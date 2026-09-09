@@ -10,6 +10,7 @@
     "db:migrate": "prisma migrate dev",
     "db:generate": "prisma generate",
     "db:seed": "tsx prisma/seed.ts",
+    "db:backfill-day-saved-at": "tsx prisma/backfill-day-saved-at.ts",
     "db:studio": "prisma studio",
     "lint": "tsc --noEmit",
     "test": "vitest run",

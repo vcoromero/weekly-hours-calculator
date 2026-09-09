@@ -44,6 +44,7 @@ export class PreviewWeekUseCase {
         hourlyRate: r.hourlyRate,
         total: this.totalsCalc.recordTotal(r.hours, r.hourlyRate),
         description: r.description || null,
+        daySavedAt: null,
       })),
       totalsByWorker,
       grandTotal: this.totalsCalc.grandTotal(totalsByWorker),

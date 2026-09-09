@@ -16,6 +16,7 @@ export interface WeekRecordDto {
   hourlyRate: number;
   total: number;
   description: string | null;
+  daySavedAt: string | null;
 }
 
 export interface WeekWithTotalsDto {
